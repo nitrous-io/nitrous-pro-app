@@ -13,6 +13,10 @@ app.on 'ready', ->
   mainWindow = new BrowserWindow(width: 800, height: 600)
 
   mainWindow.loadUrl('file://' + __dirname + '/index.html')
+  mainWindow.webContents.on 'did-finish-load', ->
+    mainWindow.show()
+    mainWindow.focus()
+    mainWindow.webContents.send 'load-js', 'login-window/login-window'
 
   mainWindow.on 'closed', ->
     mainWindow = null

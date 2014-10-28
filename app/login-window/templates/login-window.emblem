@@ -1,0 +1,12 @@
+form submit=login
+  h3 login
+  div
+    label for='username' Username
+    = input value=username type='text' disabled=loggingIn
+  div
+    label for='password' Password
+    = input value=password type='password' disabled=loggingIn
+
+  input type='submit' value='Login' disabled=loggingIn
+  if loggingIn
+    | logging in...
