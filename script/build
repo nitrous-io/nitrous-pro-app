@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+BUILD_DIR=./build
+
+
+cd rails
+rm -f public/index.html
+rm -rf public/assets
+mkdir -p public/assets
+RACK_ENV=production bundle exec rake assets:clean assets:precompile
+bundle exec rails runner -e production 'puts ActionView::Base.new(Rails::Application::Configuration.new(Rails.root).paths["app/views"]).render(template: "web_app/index")' > public/index.html
+cd ..
+
+rm -rf "$BUILD_DIR"
+mkdir "$BUILD_DIR"
+mv rails/public/index.html "$BUILD_DIR"
+mv rails/public/assets/main.js "$BUILD_DIR"
+mv rails/public/assets/application.js "$BUILD_DIR"
+mv rails/public/assets/application.css "$BUILD_DIR"
+cp package.json "$BUILD_DIR"

@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+atom_shell_ver=$1
+atom_shell_ver=${atom_shell_ver:='0.18.2'}
+
+for arch in darwin-x64 win32-ia32; do
+  mkdir -p atom-shell
+  cd atom-shell
+  filename='atom-shell-v'"$atom_shell_ver"'-'"$arch"'.zip'
+  dir="$atom_shell_ver"/"$arch"
+	mkdir -p "$atom_shell_ver"
+  wget 'https://github.com/atom/atom-shell/releases/download/v'"$atom_shell_ver"'/'"$filename" -O $filename
+  unzip -of $filename -d $dir
+	cd ..
+done
+
+cd rails
+bundle install
+cd ..

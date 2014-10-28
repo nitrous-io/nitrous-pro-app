@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+atom_shell_ver=$1
+atom_shell_ver=${atom_shell_ver:='0.18.2'}
+
+atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app/Contents/MacOS/Atom ./build

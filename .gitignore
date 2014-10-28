@@ -1,0 +1,61 @@
+# app
+*.nw
+.bundle/
+build/
+Gemfile.lock
+tmp/
+npmdebug.log
+config.json
+
+# Rails
+rails/.bundle/
+rails/db/*.sqlite3
+rails/log/*.log
+rails/tmp/
+rails/.sass-cache/
+rails/public/assets/
+rails/vendor/bundle/
+rails/config/database.yml
+rails/spec/tmp/*
+rails/coverage/
+rails/.env
+rails/public/index.html
+
+# atom-shell
+atom-shell/
+
+# OSX
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# RubyMine
+.idea/
+
+# TextMate
+*.tmproj
+*.tmproject
+tmtags
+
+# Vim
+.*.sw[a-z]
+*.un~
+Session.vim
+
+# Emacs
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+.\#*
