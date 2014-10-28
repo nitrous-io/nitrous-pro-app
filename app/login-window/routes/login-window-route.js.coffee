@@ -2,9 +2,10 @@ ipc = require 'ipc'
 config = require './config'
 
 App.LoginWindowRoute = Em.Route.extend
-  activate: ->
+  setupController: (controller) ->
     @_super.apply this, arguments
     return unless token = window.localStorage.getItem 'access-token'
+    controller.set 'loggingIn', true
     $.ajax(
       type: 'GET'
       url: "#{config.host}/api/v0/user"
@@ -18,3 +19,4 @@ App.LoginWindowRoute = Em.Route.extend
       else
         json = jqxhr.responseJSON
         window.alert(json.error_description || json.error || jqxhr.statusText)
+      controller.set 'loggingIn', false

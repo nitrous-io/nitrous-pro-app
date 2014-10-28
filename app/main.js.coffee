@@ -4,23 +4,30 @@ BrowserWindow = require 'browser-window'
 
 #require('crash-reporter').start()
 
-mainWindow = null
+root.nitrous =
+  loginWindow: null
+  mainWindow: null
 
-app.on 'window-all-closed', ->
+app.on 'win-all-closed', ->
   if process.platform != 'darwin'
     app.quit()
 
 app.on 'ready', ->
-  mainWindow = new BrowserWindow(width: 800, height: 600)
-
-  mainWindow.loadUrl('file://' + __dirname + '/index.html')
-  mainWindow.webContents.on 'did-finish-load', ->
-    mainWindow.show()
-    mainWindow.focus()
-    mainWindow.webContents.send 'load-js', 'login-window/login-window'
+  nitrous.loginWindow = initWindow('login-window/login-window', width: 300, height: 200)
+  nitrous.loginWindow.on 'closed', ->
+    nitrous.loginWindow = null
 
   ipc.on 'logged-in', (event, token) ->
-    console.log 'token is', token
+    nitrous.loginWindow.close()
+    nitrous.mainWindow = initWindow('main-window/main-window', width: 800, height: 600)
+    nitrous.mainWindow.on 'closed', ->
+      nitrous.mainWindow = null
 
-  mainWindow.on 'closed', ->
-    mainWindow = null
+initWindow = (js, options={}) ->
+  win = new BrowserWindow(options)
+  win.loadUrl('file://' + __dirname + '/index.html')
+  win.webContents.on 'did-finish-load', ->
+    win.show()
+    win.focus()
+    win.webContents.send 'load-js', js
+  win
