@@ -5,5 +5,6 @@ Rails.application.config.assets.precompile += %w(
   jquery.js
   login-window/login-window.js
   main-window/main-window.js
+  lib/ajax.js
   config.js
 )

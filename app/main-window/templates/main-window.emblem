@@ -1,1 +1,8 @@
-p main window yay
+ul
+  each host in App.hosts
+    li
+      = host.name
+      ul
+        each container in host.containers
+          li
+            = container.name

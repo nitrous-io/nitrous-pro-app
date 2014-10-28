@@ -3,6 +3,8 @@
 
 window.MainWindow = Em.Application.extend
   rootElement: '#app'
+  hosts: null
+  containers: null
 
 window.App = MainWindow.create()
 

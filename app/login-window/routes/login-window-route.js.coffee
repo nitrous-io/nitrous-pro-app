@@ -1,16 +1,14 @@
 ipc = require 'ipc'
-config = require './config'
+ajax = require './lib/ajax'
 
 App.LoginWindowRoute = Em.Route.extend
   setupController: (controller) ->
     @_super.apply this, arguments
     return unless token = window.localStorage.getItem 'access-token'
     controller.set 'loggingIn', true
-    $.ajax(
+    ajax(
       type: 'GET'
-      url: "#{config.host}/api/v0/user"
-      headers:
-        Authorization: "Bearer #{token}"
+      url: '/api/v0/user'
     ).then (res) ->
       ipc.send 'logged-in', token
     , (jqxhr) ->

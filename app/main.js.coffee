@@ -17,7 +17,7 @@ app.on 'ready', ->
   nitrous.loginWindow.on 'closed', ->
     nitrous.loginWindow = null
 
-  ipc.on 'logged-in', (event, token) ->
+  ipc.on 'logged-in', (event) ->
     nitrous.loginWindow.close()
     nitrous.mainWindow = initWindow('main-window/main-window', width: 800, height: 600)
     nitrous.mainWindow.on 'closed', ->
