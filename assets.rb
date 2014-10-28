@@ -1,0 +1,1 @@
+rails/config/initializers/assets.rb

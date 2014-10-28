@@ -3,15 +3,21 @@ ATOM_SHELL_VERSION=0.18.2
 all: build
 
 setup:
-	script/setup
+	script/setup $(ATOM_SHELL_VERSION)
 
 clean:
 	rm -rf build/
 
 build:
-	script/build $(ATOM_SHELL_VERSION)
+	script/build
 
-run: build
+build-dev:
+	script/build development
+
+run: build-dev
 	script/run $(ATOM_SHELL_VERSION)
 
-.PHONY: setup build
+watch: build-dev
+	bundle exec guard start
+
+.PHONY: setup clean build build-dev run watch
