@@ -1,4 +1,5 @@
 app = require 'app'
+ipc = require 'ipc'
 BrowserWindow = require 'browser-window'
 
 #require('crash-reporter').start()
@@ -17,6 +18,9 @@ app.on 'ready', ->
     mainWindow.show()
     mainWindow.focus()
     mainWindow.webContents.send 'load-js', 'login-window/login-window'
+
+  ipc.on 'logged-in', (event, token) ->
+    console.log 'token is', token
 
   mainWindow.on 'closed', ->
     mainWindow = null

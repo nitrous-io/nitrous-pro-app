@@ -17,7 +17,9 @@ App.LoginWindowController = Em.Controller.extend
           username: @get 'username'
           password: @get 'password'
       ).then (res) ->
-        ipc.send 'access-token', res.access_token
+        token = res.access_token
+        window.localStorage.setItem 'access-token', token
+        ipc.send 'logged-in', token
       , (jqxhr) =>
         json = jqxhr.responseJSON
         window.alert(json.error_description || json.error)
