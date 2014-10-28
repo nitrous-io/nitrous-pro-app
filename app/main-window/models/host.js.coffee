@@ -16,6 +16,10 @@ App.Host = klass = Em.Object.extend
       containers.filterBy 'hostId', @get('id')
   ).property 'App.containers.@each', 'id'
 
+  displayName: (->
+    @get('name') || @get('slug')
+  ).property 'name', 'slug'
+
 klass.reopenClass
   fetch: ->
     hosts = Em.ArrayProxy.create()

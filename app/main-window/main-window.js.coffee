@@ -5,6 +5,7 @@ window.MainWindow = Em.Application.extend
   rootElement: '#app'
   hosts: null
   containers: null
+  selectedContainer: null
 
 window.App = MainWindow.create()
 

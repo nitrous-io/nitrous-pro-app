@@ -9,6 +9,14 @@ App.Container = klass = Em.Object.extend
   image: null
   hostId: null
 
+  displayName: (->
+    @get('name') || @get('slug')
+  ).property 'name', 'slug'
+
+  selected: (->
+    App.get('selectedContainer') == this
+  ).property 'App.selectedContainer'
+
 klass.reopenClass
   fetch: ->
     containers = Em.ArrayProxy.create()
