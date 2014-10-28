@@ -6,6 +6,7 @@ Gemfile.lock
 tmp/
 npmdebug.log
 config.json
+ext/
 
 # Rails
 rails/.bundle/

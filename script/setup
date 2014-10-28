@@ -9,10 +9,10 @@ for arch in darwin-x64 win32-ia32; do
   cd atom-shell
   filename='atom-shell-v'"$atom_shell_ver"'-'"$arch"'.zip'
   dir="$atom_shell_ver"/"$arch"
-	mkdir -p "$atom_shell_ver"
+  mkdir -p "$atom_shell_ver"
   wget 'https://github.com/atom/atom-shell/releases/download/v'"$atom_shell_ver"'/'"$filename" -O $filename
   unzip -of $filename -d $dir
-	cd ..
+  cd ..
 done
 
 cd rails

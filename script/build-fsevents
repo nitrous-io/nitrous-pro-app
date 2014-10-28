@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+atom_shell_ver=$1
+atom_shell_ver=${atom_shell_ver:='0.18.2'}
+
+if [ ! -d ext/fsevents ]; then
+  mkdir -p ext
+  git clone https://github.com/pipobscure/fsevents.git ext/fsevents
+fi
+
+npm install -g node-gyp
+cd ext/fsevents
+npm install
+HOME=~/.atom-shell-gyp node-gyp rebuild --target="$atom_shell_ver" --arch=x64 --dist-url=https://gh-contractor-zcbenz.s3.amazonaws.com/atom-shell/dist
+cd ../..
