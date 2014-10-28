@@ -9,6 +9,8 @@ App.Container = klass = Em.Object.extend
   image: null
   hostId: null
 
+  syncEnabled: false
+
   displayName: (->
     @get('name') || @get('slug')
   ).property 'name', 'slug'

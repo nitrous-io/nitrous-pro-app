@@ -1,0 +1,4 @@
+if on
+  | ON
+else
+  | OFF

@@ -11,3 +11,4 @@
   if App.selectedContainer
     h2
       = App.selectedContainer.displayName
+    = ui-sync-switch on=App.selectedContainer.syncEnabled
