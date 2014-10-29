@@ -18,6 +18,6 @@ run: build-dev
 	script/run $(ATOM_SHELL_VERSION)
 
 watch: build-dev
-	bundle exec guard start
+	watchy -w 'app,css,images,index.html.slim' -- make build-dev
 
 .PHONY: setup clean build build-dev run watch

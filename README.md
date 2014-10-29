@@ -5,7 +5,7 @@ Nitrous Pro Desktop App
 
 ```
 bundle install
-rake setup
+make setup
 ```
 
 - - - - -
