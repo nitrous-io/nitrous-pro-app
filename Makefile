@@ -2,7 +2,7 @@ ATOM_SHELL_VERSION=0.18.2
 
 all: build
 
-setup: build-fsevents
+setup:
 	script/setup $(ATOM_SHELL_VERSION)
 
 clean:
@@ -20,7 +20,4 @@ run: build-dev
 watch: build-dev
 	bundle exec guard start
 
-build-fsevents:
-	script/build-fsevents $(ATOM_SHELL_VERSION)
-
-.PHONY: setup clean build build-dev run watch build-fsevents
+.PHONY: setup clean build build-dev run watch
