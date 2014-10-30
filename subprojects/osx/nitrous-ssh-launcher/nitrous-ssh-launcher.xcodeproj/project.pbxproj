@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B00651D61A01A96C0021CB82 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B00651D51A01A96C0021CB82 /* main.m */; };
+		B0B51DC71A01DF520004A293 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B0B51DC61A01DF520004A293 /* main.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,8 +23,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B00651D21A01A96C0021CB82 /* nitrous-launcher */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "nitrous-launcher"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B00651D51A01A96C0021CB82 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B00651D21A01A96C0021CB82 /* nitrous-ssh-launcher */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "nitrous-ssh-launcher"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0B51DC61A01DF520004A293 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,7 +41,7 @@
 		B00651C91A01A96B0021CB82 = {
 			isa = PBXGroup;
 			children = (
-				B00651D41A01A96C0021CB82 /* nitrous-launcher */,
+				B0B51DC51A01DF520004A293 /* nitrous-ssh-launcher */,
 				B00651D31A01A96C0021CB82 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,25 +49,25 @@
 		B00651D31A01A96C0021CB82 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B00651D21A01A96C0021CB82 /* nitrous-launcher */,
+				B00651D21A01A96C0021CB82 /* nitrous-ssh-launcher */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		B00651D41A01A96C0021CB82 /* nitrous-launcher */ = {
+		B0B51DC51A01DF520004A293 /* nitrous-ssh-launcher */ = {
 			isa = PBXGroup;
 			children = (
-				B00651D51A01A96C0021CB82 /* main.m */,
+				B0B51DC61A01DF520004A293 /* main.m */,
 			);
-			path = "nitrous-launcher";
+			path = "nitrous-ssh-launcher";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B00651D11A01A96C0021CB82 /* nitrous-launcher */ = {
+		B00651D11A01A96C0021CB82 /* nitrous-ssh-launcher */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B00651D91A01A96C0021CB82 /* Build configuration list for PBXNativeTarget "nitrous-launcher" */;
+			buildConfigurationList = B00651D91A01A96C0021CB82 /* Build configuration list for PBXNativeTarget "nitrous-ssh-launcher" */;
 			buildPhases = (
 				B00651CE1A01A96C0021CB82 /* Sources */,
 				B00651CF1A01A96C0021CB82 /* Frameworks */,
@@ -77,9 +77,9 @@
 			);
 			dependencies = (
 			);
-			name = "nitrous-launcher";
+			name = "nitrous-ssh-launcher";
 			productName = "nitrous-launcher";
-			productReference = B00651D21A01A96C0021CB82 /* nitrous-launcher */;
+			productReference = B00651D21A01A96C0021CB82 /* nitrous-ssh-launcher */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -96,7 +96,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B00651CD1A01A96B0021CB82 /* Build configuration list for PBXProject "nitrous-launcher" */;
+			buildConfigurationList = B00651CD1A01A96B0021CB82 /* Build configuration list for PBXProject "nitrous-ssh-launcher" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -108,7 +108,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B00651D11A01A96C0021CB82 /* nitrous-launcher */,
+				B00651D11A01A96C0021CB82 /* nitrous-ssh-launcher */,
 			);
 		};
 /* End PBXProject section */
@@ -118,7 +118,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B00651D61A01A96C0021CB82 /* main.m in Sources */,
+				B0B51DC71A01DF520004A293 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,21 +202,25 @@
 		B00651DA1A01A96C0021CB82 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.9;
 			};
 			name = Debug;
 		};
 		B00651DB1A01A96C0021CB82 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx10.9;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B00651CD1A01A96B0021CB82 /* Build configuration list for PBXProject "nitrous-launcher" */ = {
+		B00651CD1A01A96B0021CB82 /* Build configuration list for PBXProject "nitrous-ssh-launcher" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B00651D71A01A96C0021CB82 /* Debug */,
@@ -225,13 +229,14 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B00651D91A01A96C0021CB82 /* Build configuration list for PBXNativeTarget "nitrous-launcher" */ = {
+		B00651D91A01A96C0021CB82 /* Build configuration list for PBXNativeTarget "nitrous-ssh-launcher" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B00651DA1A01A96C0021CB82 /* Debug */,
 				B00651DB1A01A96C0021CB82 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -1,6 +1,6 @@
 //
 //  main.m
-//  nitrous-launcher
+//  nitrous-ssh-launcher
 //
 //  Created by Callum Jones on 10/29/14.
 //  Copyright (c) 2014 Callum Jones. All rights reserved.
@@ -12,14 +12,19 @@
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        if (argc <= 2) {
-            printf("Usage: %s [scheme] [command]", argv[0]);
+        if (argc <= 1) {
+            printf("Usage: %s [command]", argv[0]);
             return -1;
         }
         
-        CFStringRef cfScheme = CFStringCreateWithCString(NULL, argv[1], kCFStringEncodingUTF8);
+        CFStringRef cfScheme = CFStringCreateWithCString(NULL, "ssh://", kCFStringEncodingUTF8);
         CFURLRef url = CFURLCreateWithString(NULL, cfScheme, NULL);
-        CFURLRef app = LSCopyDefaultApplicationURLForURL(url, kLSRolesAll, NULL);
+        CFURLRef app = NULL;
+        LSGetApplicationForURL((CFURLRef)url, kLSRolesAll, NULL, &app);
+        if (app == NULL) {
+            printf("Unable to locate application for ssh:// scheme\n");
+            return -1;
+        }
         
         NSURL *appUrl = (__bridge NSURL *)(app);
         NSBundle *bundle = [NSBundle bundleWithURL:appUrl];
@@ -27,7 +32,7 @@ int main(int argc, const char * argv[]) {
         printf("Starting %s", [appName UTF8String]);
         
         NSString *appleScriptSource;
-        if ([appName containsString:@"iTerm"]) {
+        if ([appName rangeOfString:@"iTerm"].location != NSNotFound) {
             appleScriptSource = @"tell app \"iTerm\"\n"
             "  activate\n"
             "  if (count of terminals) = 0 then\n"
@@ -49,7 +54,13 @@ int main(int argc, const char * argv[]) {
             "end tell";
         }
         
-        NSString *command = [NSString stringWithUTF8String:argv[2]];
+        NSMutableString *command = [NSMutableString stringWithUTF8String:argv[1]];
+        if (argc > 2) {
+            for (int i = 2; i < argc; i++) {
+                [command appendFormat:@" %s", argv[i]];
+            }
+        }
+        NSLog(@"Command: %@", command);
         NSString *finalScript = [NSString stringWithFormat:appleScriptSource, [command stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
         NSAppleScript *as = [[NSAppleScript alloc] initWithSource:finalScript];
         NSDictionary *errorDict = nil;
