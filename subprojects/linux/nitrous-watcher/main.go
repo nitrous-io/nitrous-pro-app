@@ -11,7 +11,7 @@ import (
 
 func recursivelyWatchDirectories(watcher *inotify.Watcher, path string) {
 	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
+		if info != nil && info.IsDir() {
 			err = watcher.AddWatch(path, inotify.IN_MODIFY|inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_DELETE_SELF|inotify.IN_CLOSE_WRITE)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
@@ -73,6 +73,9 @@ func main() {
 				}
 			} else if evMask&inotify.IN_DELETE != 0 || evMask&inotify.IN_DELETE_SELF != 0 {
 				evName = "delete"
+				if evMask&inotify.IN_ISDIR != 0 {
+					watcher.RemoveWatch(path)
+				}
 			} else if evMask&inotify.IN_MOVE != 0 {
 				evName = "move"
 				found, err := exists(path)
