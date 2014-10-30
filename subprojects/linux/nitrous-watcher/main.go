@@ -6,12 +6,20 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"syscall"
+)
+
+var (
+	ignoreRegex *regexp.Regexp
 )
 
 func recursivelyWatchDirectories(watcher *inotify.Watcher, path string) {
 	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if info != nil && info.IsDir() {
+			if ignoreRegex != nil && ignoreRegex.MatchString(path) {
+				return filepath.SkipDir
+			}
 			err = watcher.AddWatch(path, inotify.IN_MODIFY|inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_DELETE_SELF|inotify.IN_CLOSE_WRITE)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
@@ -40,13 +48,15 @@ func main() {
 		os.Exit(1)
 	}
 	if len(os.Args) < 2 {
-		fmt.Printf("Usage: %s [path] ([path]...)\n", os.Args[0])
+		fmt.Printf("Usage: %s [path] ([ignore regex])\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	for _, path := range os.Args[1:len(os.Args)] {
-		recursivelyWatchDirectories(watcher, path)
+	if len(os.Args) >= 3 {
+		ignoreRegex = regexp.MustCompile(os.Args[2])
 	}
+
+	recursivelyWatchDirectories(watcher, os.Args[1])
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
