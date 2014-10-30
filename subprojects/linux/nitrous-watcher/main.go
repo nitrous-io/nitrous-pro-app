@@ -57,6 +57,7 @@ func main() {
 		}
 	}()
 
+	fmt.Println("Ready!")
 	for {
 		select {
 		case ev := <-watcher.Event:
@@ -85,8 +86,6 @@ func main() {
 				}
 			} else if evMask&inotify.IN_CLOSE_WRITE != 0 {
 				evName = "closed"
-			} else {
-				fmt.Printf("Unknown event: %s\n", ev.String())
 			}
 			fmt.Printf("Change(%s): %s\n", evName, path)
 		}
