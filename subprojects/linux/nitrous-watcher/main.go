@@ -5,8 +5,22 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 )
+
+func recursivelyWatchDirectories(watcher *inotify.Watcher, path string) {
+	filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			err = watcher.AddWatch(path, inotify.IN_MODIFY|inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_DELETE_SELF|inotify.IN_CLOSE_WRITE)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
+		}
+		return nil
+	})
+}
 
 func main() {
 	watcher, err := inotify.NewWatcher()
@@ -20,12 +34,7 @@ func main() {
 	}
 
 	for _, path := range os.Args[1:len(os.Args)] {
-		fmt.Printf("Subscribing to %s\n", path)
-		err = watcher.AddWatch(path, inotify.IN_MODIFY|inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_DELETE_SELF|inotify.IN_CLOSE_WRITE)
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
+		recursivelyWatchDirectories(watcher, path)
 	}
 
 	c := make(chan os.Signal, 1)
@@ -46,6 +55,9 @@ func main() {
 				evName = "modify"
 			} else if evMask&inotify.IN_CREATE == inotify.IN_CREATE {
 				evName = "create"
+				if evMask&inotify.IN_ISDIR == inotify.IN_ISDIR {
+					recursivelyWatchDirectories(watcher, ev.Name)
+				}
 			} else if evMask&inotify.IN_DELETE == inotify.IN_DELETE || evMask&inotify.IN_DELETE_SELF == inotify.IN_DELETE_SELF {
 				evName = "delete"
 			} else if evMask&inotify.IN_MOVE == inotify.IN_MOVE {
