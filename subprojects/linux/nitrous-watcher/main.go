@@ -22,6 +22,17 @@ func recursivelyWatchDirectories(watcher *inotify.Watcher, path string) {
 	})
 }
 
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func main() {
 	watcher, err := inotify.NewWatcher()
 	if err != nil {
@@ -51,21 +62,33 @@ func main() {
 		case ev := <-watcher.Event:
 			evName := ""
 			evMask := ev.Mask
-			if evMask&inotify.IN_MODIFY == inotify.IN_MODIFY {
+			path := ev.Name
+			if evMask&inotify.IN_MODIFY != 0 {
 				evName = "modify"
-			} else if evMask&inotify.IN_CREATE == inotify.IN_CREATE {
+			} else if evMask&inotify.IN_CREATE != 0 {
 				evName = "create"
-				if evMask&inotify.IN_ISDIR == inotify.IN_ISDIR {
-					recursivelyWatchDirectories(watcher, ev.Name)
+				if evMask&inotify.IN_ISDIR != 0 {
+					recursivelyWatchDirectories(watcher, path)
 				}
-			} else if evMask&inotify.IN_DELETE == inotify.IN_DELETE || evMask&inotify.IN_DELETE_SELF == inotify.IN_DELETE_SELF {
+			} else if evMask&inotify.IN_DELETE != 0 || evMask&inotify.IN_DELETE_SELF != 0 {
 				evName = "delete"
-			} else if evMask&inotify.IN_MOVE == inotify.IN_MOVE {
+			} else if evMask&inotify.IN_MOVE != 0 {
 				evName = "move"
-			} else if evMask&inotify.IN_CLOSE_WRITE == inotify.IN_CLOSE_WRITE {
+				found, err := exists(path)
+				// move generates 2 events, one for the old directory being moved and one for the new location
+				if found {
+					if evMask&inotify.IN_ISDIR != 0 {
+						recursivelyWatchDirectories(watcher, path)
+					}
+				} else if err != nil {
+					watcher.RemoveWatch(path)
+				}
+			} else if evMask&inotify.IN_CLOSE_WRITE != 0 {
 				evName = "closed"
+			} else {
+				fmt.Printf("Unknown event: %s\n", ev.String())
 			}
-			fmt.Printf("Change(%s): %s\n", evName, ev.Name)
+			fmt.Printf("Change(%s): %s\n", evName, path)
 		}
 	}
 }
