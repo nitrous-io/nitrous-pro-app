@@ -1,0 +1,11 @@
+{
+	"ImportPath": "github.com/nitrous-io/nitrous-watcher",
+	"GoVersion": "go1.3.3",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go.exp/inotify",
+			"Comment": "null-75",
+			"Rev": "bd8df7009305d6ada223ea3c95b94c0f38bfa119"
+		}
+	]
+}

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+export BUILD=$(pwd)/build
+mkdir -p $BUILD
+
+mkdir -p $BUILD/linux386
+gox -osarch="linux/386" -output="${BUILD}/linux386/{{.Dir}}" github.com/nitrous-io/nitrous-pro-app/subprojects/linux/nitrous-watcher
+
+mkdir -p $BUILD/linuxamd64
+gox -osarch="linux/amd64" -output="${BUILD}/linuxamd64/{{.Dir}}" github.com/nitrous-io/nitrous-pro-app/subprojects/linux/nitrous-watcher
