@@ -18,8 +18,21 @@ void event_cb(ConstFSEventStreamRef streamRef,
                      | kFSEventStreamEventFlagItemRenamed
                      | kFSEventStreamEventFlagItemModified
                      | kFSEventStreamEventFlagRootChanged)) {
+            char * chngName;
+            if (flags&kFSEventStreamEventFlagItemCreated)
+                chngName = "create";
+            else if (flags&kFSEventStreamEventFlagItemModified)
+                chngName = "modify";
+            else if (flags&kFSEventStreamEventFlagItemRemoved)
+                chngName = "delete";
+            else if (flags&kFSEventStreamEventFlagItemRenamed)
+                chngName = "move";
+            else if (flags&kFSEventStreamEventFlagRootChanged)
+                chngName = "root_changed";
+            else
+                chngName = "0";
             for (NSString *path in eventPathsArray) {
-                printf("Change(0): %s\n", [path UTF8String]);
+                printf("Change(%s): %s\n", chngName, [path UTF8String]);
             }
             fflush(stdout);
         }
