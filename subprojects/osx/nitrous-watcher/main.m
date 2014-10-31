@@ -33,8 +33,8 @@ void event_cb(ConstFSEventStreamRef streamRef,
                 chngName = "0";
             for (NSString *path in eventPathsArray) {
                 printf("Change(%s): %s\n", chngName, [path UTF8String]);
+                fflush(stdout);
             }
-            fflush(stdout);
         }
     }
 }
@@ -56,7 +56,7 @@ void watchFiles(NSString *path) {
                                  (__bridge CFArrayRef) paths,
                                  kFSEventStreamEventIdSinceNow,
                                  (CFAbsoluteTime) latency,
-                                 kFSEventStreamCreateFlagUseCFTypes
+                                 kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagWatchRoot |kFSEventStreamCreateFlagFileEvents
                                  );
     if (stream == NULL) {
         printf("Failed to init FSEventStreamCreate!\n");

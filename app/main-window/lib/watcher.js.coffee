@@ -55,7 +55,7 @@ klass = class App.Watcher extends EventEmitter
 
   _processOutput: (data) ->
     data = data.toString('utf8')
-    if match = data.match /^Change\(\d\): (.+)$/m
+    if match = data.match /^Change\(.+\): (.+)$/m
       if fileName = match[1]
         filePath = path.join(@path, fileName)
         @_notify(filePath)
