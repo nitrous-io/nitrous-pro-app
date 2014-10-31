@@ -27,10 +27,13 @@ App.Unison = klass = Em.Object.extend
   shouldRetryWithDelay: null
 
   abort: ->
-    return unless @get 'syncing'
     console.log "#{@get 'container.slug'}: aborting sync..."
+    if @get 'syncing'
+      @set 'shouldAbort', true
+    if schedule = @get 'retrySchedule'
+      Em.run.cancel(schedule)
+
     @setProperties
-      shouldAbort: true
       shouldSyncAgain: false
       shouldIgnoreArchives: false
       shouldIgnoreLocks: false
