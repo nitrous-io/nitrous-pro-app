@@ -96,8 +96,8 @@ App.Unison = klass = Em.Object.extend
       detached: false
       env: env
 
-    fs.exists syncPath, (exists) =>
-      if !exists || @get 'shouldIgnoreArchives'
+    fs.exists unisonArchivesPath, (archiveExists) =>
+      if !archiveExists || @get 'shouldIgnoreArchives'
         @set 'shouldIgnoreArchives', false
         args.push '-ignorearchives'
 

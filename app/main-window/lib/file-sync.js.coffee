@@ -39,18 +39,20 @@ App.FileSync = klass = Em.Object.extend
     # make nitrous folder
     fs.mkdir NITROUS_FOLDER_PATH, '0755', (err) =>
       return cb?(err) if err && err.code != 'EEXIST'
-      # initialize watcher
-      @set 'unison', App.Unison.create(container: container, syncPath: syncPath)
-      @set 'watcher', watcher = new App.Watcher(syncPath)
-      watcher.on 'change', (change) =>
-        console.log "#{slug}: detected local fs change at #{change}"
-        @performSync()
-      # perform initial sync, and then start watcher
-      @performSync =>
-        return unless @get 'started' # if sync is disabled before first sync is completed
-        console.log "#{slug}: starting watcher..."
-        watcher.start()
-      cb?()
+      fs.mkdir syncPath, '0755', (err) =>
+        return cb?(err) if err && err.code != 'EEXIST'
+        # initialize watcher
+        @set 'unison', App.Unison.create(container: container, syncPath: syncPath)
+        @set 'watcher', watcher = new App.Watcher(syncPath)
+        watcher.on 'change', (change) =>
+          console.log "#{slug}: detected local fs change at #{change}"
+          @performSync()
+        # perform initial sync, and then start watcher
+        @performSync =>
+          return unless @get 'started' # if sync is disabled before first sync is completed
+          console.log "#{slug}: starting watcher..."
+          watcher.start()
+        cb?()
 
   stopWatcher: ->
     if watcher = @get 'watcher'
