@@ -1,13 +1,16 @@
 package main
 
 import (
-	"code.google.com/p/go.exp/inotify"
 	"fmt"
 	"os"
 	"os/signal"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"syscall"
+
+	"code.google.com/p/go.exp/inotify"
 )
 
 var (
@@ -56,7 +59,19 @@ func main() {
 		ignoreRegex = regexp.MustCompile(os.Args[2])
 	}
 
-	recursivelyWatchDirectories(watcher, os.Args[1])
+	watchDir := os.Args[1]
+
+	if strings.HasPrefix(watchDir, "~/") {
+		cUsr, err := user.Current()
+		if err == nil {
+			watchDir = cUsr.HomeDir + "/" + strings.TrimPrefix(watchDir, "~/")
+		}
+	}
+
+	if finalDir, err := filepath.EvalSymlinks(watchDir); err == nil {
+		watchDir = finalDir
+	}
+	recursivelyWatchDirectories(watcher, watchDir)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -67,7 +82,7 @@ func main() {
 		}
 	}()
 
-	fmt.Println("Ready!")
+	fmt.Printf("Ready to watch %s\n", watchDir)
 	for {
 		select {
 		case ev := <-watcher.Event:
