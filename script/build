@@ -19,3 +19,5 @@ mv rails/public/index.html "$BUILD_DIR"
 mv rails/public/assets/* "$BUILD_DIR"
 cp -a images "$BUILD_DIR"
 rm -f "$BUILD_DIR"/manifest-*.json
+
+cp -a ./bin "$BUILD_DIR"

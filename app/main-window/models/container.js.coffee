@@ -1,4 +1,8 @@
+fs = require 'fs'
 ajax = require './lib/ajax'
+path = require 'path'
+
+NITROUS_FOLDER_PATH = path.join(App.homePath, 'Nitrous')
 
 App.Container = klass = Em.Object.extend
   id: null
@@ -11,6 +15,12 @@ App.Container = klass = Em.Object.extend
 
   syncEnabled: false
 
+  fileSync: null
+
+  init: ->
+    @_super.apply this, arguments
+    @set 'fileSync', App.FileSync.create(container: this)
+
   displayName: (->
     @get('name') || @get('slug')
   ).property 'name', 'slug'
@@ -18,6 +28,44 @@ App.Container = klass = Em.Object.extend
   selected: (->
     App.get('selectedContainer') == this
   ).property 'App.selectedContainer'
+
+  host: (->
+    App.get('hosts').findBy('id', @get('hostId'))
+  ).property 'hostId', 'App.hosts.@each'
+
+  config: (->
+    config = Em.ObjectProxy.create()
+    ajax(
+      type: 'GET'
+      url: "/api/v0/containers/#{@get 'id'}/config"
+    ).then (res) =>
+      config.set 'content', res.config
+    config
+  ).property 'id'
+
+  sshUsername: (->
+    username = null
+    if envVars = @get 'config.env'
+      for envVar in envVars
+        break if username = envVar.match(/^NITROUS_USERNAME=(.+)$/)?[1]
+    username
+  ).property 'config.env.@each'
+
+  sshPort: (->
+    port = null
+    if portBindings = @get 'config.port'
+      for portBinding in portBindings
+        break if port = portBinding.match(/^public:(.+):22(\/tcp)?$/)?[1]
+    port
+  ).property 'config.port.@each'
+
+  sshUrl: (->
+    sshUsername = @get 'sshUsername'
+    hostname = @get 'host.hostname'
+    sshPort = @get 'sshPort'
+    return unless sshUsername && hostname && sshPort
+    "ssh://#{sshUsername}@#{hostname}:#{sshPort}"
+  ).property 'sshUsername', 'host.hostname', 'sshPort'
 
 klass.reopenClass
   fetch: ->

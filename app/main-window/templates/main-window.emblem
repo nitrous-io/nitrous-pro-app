@@ -11,4 +11,4 @@
   if App.selectedContainer
     h2
       = App.selectedContainer.displayName
-    = ui-sync-switch on=App.selectedContainer.syncEnabled
+    = ui-sync-switch on=App.selectedContainer.fileSync.enabled
