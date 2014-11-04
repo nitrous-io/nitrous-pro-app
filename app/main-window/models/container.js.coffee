@@ -1,8 +1,6 @@
-fs = require 'fs'
 ajax = require './lib/ajax'
 path = require 'path'
-
-NITROUS_FOLDER_PATH = path.join(App.homePath, 'Nitrous')
+fs = require 'fs'
 
 App.Container = klass = Em.Object.extend
   id: null
@@ -81,6 +79,13 @@ App.Container = klass = Em.Object.extend
     return unless sshUsername && hostname && sshPort
     "ssh://#{sshUsername}@#{hostname}:#{sshPort}"
   ).property 'sshUsername', 'host.hostname', 'sshPort'
+
+  configPath: (->
+    return unless slug = @get('slug')
+    configPath = path.join(App.get('dataPath'), slug)
+    fs.mkdirSync(configPath, '0755') unless fs.existsSync(configPath)
+    configPath
+  ).property 'App.dataPath', 'slug'
 
 klass.reopenClass
   fetch: ->
