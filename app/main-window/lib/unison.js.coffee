@@ -57,9 +57,9 @@ App.Unison = klass = Em.Object.extend
       '/dev/null'
 
     sshArgs = [
-      "-o UserKnownHostsFile=#{nullFile}"     # ignore known hosts
-      '-o StrictHostKeyChecking=no'           # no host key checking
-      '-o PreferredAuthentications=publickey' # pub key authentication only
+      '-o', "UserKnownHostsFile=#{nullFile}"     # ignore known hosts
+      '-o', 'StrictHostKeyChecking=no'           # no host key checking
+      '-o', 'PreferredAuthentications=publickey' # pub key authentication only
       '-q'                                    # quiet mode
     ]
 
@@ -78,6 +78,7 @@ App.Unison = klass = Em.Object.extend
       '-ignorecase', 'true' # case-insensitive
       '-prefer', remotePath
       '-terse' # reduce output
+      '-servercmd=/nitrous/nitrous-unison'
     ]
 
     # place archives file in syncPath/.unison
