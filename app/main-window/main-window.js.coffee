@@ -1,5 +1,5 @@
 #= require_self
-#= require_tree .
+#= require ./app
 
 os = require 'os'
 fs = require 'fs'
@@ -16,7 +16,7 @@ homePath = if platform.isWindows
 else
   process.env.HOME
 
-window.MainWindow = klass = Em.Application.extend
+window.MainWindow = klass = Em.Application.extend Em.Evented,
   rootElement: '#app'
 
   username: DATA.username
@@ -56,6 +56,8 @@ $(window).on 'online', ->
 
 $(window).on 'offline', ->
   App.set 'online', false
+
+App.on 'app-did-load', ->
 
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
 
