@@ -31,6 +31,8 @@ App.Unison = klass = Em.Object.extend
   shouldIgnoreLocks: false
   shouldRetryWithDelay: null
 
+  onPermissionDenied: null
+
   abort: ->
     console.log "#{@get 'container.slug'}: aborting sync..."
     if @get 'syncing'
@@ -61,14 +63,14 @@ App.Unison = klass = Em.Object.extend
     else
       '/dev/null'
 
-    privateKeyPath = App.get('sshKey.privateKeyPath').replace(/\ /g, if App.platform.isWindows then '^ ' else '\\ ')
+    sshKey = App.get('sshKey')
+    privateKeyPath = sshKey.get('privateKeyPath').replace(/\ /g, if App.platform.isWindows then '^ ' else '\\ ')
 
     sshArgs = [
       '-o', "UserKnownHostsFile=#{nullFile}"     # ignore known hosts
       '-o', 'StrictHostKeyChecking=no'           # no host key checking
       '-o', 'PreferredAuthentications=publickey' # pub key authentication only
-      '-q'                                       # quiet mode
-      '-i', privateKeyPath
+      '-i', "/tmp/key1"
     ]
 
     args = [
@@ -146,6 +148,7 @@ App.Unison = klass = Em.Object.extend
         @set 'shouldIgnoreLocks', true
         @set 'shouldRetryWithDelay', 200
       else if errorMessage.indexOf('lost connection with the server') != -1
+        # determine if we need to correct an SSH issue
         @set 'lastErrorMessage', 'Connection failed'
         @set 'shouldRetryWithDelay', 5000
       else
@@ -153,6 +156,8 @@ App.Unison = klass = Em.Object.extend
         @set 'shouldRetryWithDelay', 5000
     if data.indexOf('Uncaught exception Sys_blocked_io') != -1
       @set 'shouldRetryWithDelay', 200
+    if data.indexOf('Permission denied') != -1
+      @set 'permissionDenied', true
     else if transferCount = data.match(/Synchronization complete at .+ \(([\d,]+) items? transferred/)?[1]
       @set 'transferCount', window.parseInt(transferCount.replace(/,/g, ''), 10)
 
@@ -160,6 +165,13 @@ App.Unison = klass = Em.Object.extend
     console.log "#{@get 'container.slug'}: sync process exited with code #{code}"
     @set 'process', null
     @set 'syncing', false
+
+    # handle when we were unable to authenticate
+    # and request a key be assigned
+    if @get 'permissionDenied'
+      console.log "Notifying of permission denied"
+      @get('onPermissionDenied')?()
+      return @set 'permissionDenied', false
 
     if @get 'shouldAbort'
       return @set 'shouldAbort', false

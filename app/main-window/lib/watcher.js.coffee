@@ -49,6 +49,7 @@ klass = class App.Watcher extends EventEmitter
         '-o', 'StrictHostKeyChecking=no'           # no host key checking
         '-o', 'PreferredAuthentications=publickey' # pub key authentication only
         '-q'                                       # quiet mode
+        '-i', "/tmp/key1"
         '-p', port
         host
         REMOTE_WATCHER_BIN_PATH

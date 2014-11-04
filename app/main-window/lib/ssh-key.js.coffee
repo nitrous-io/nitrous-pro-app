@@ -2,6 +2,7 @@ path = require 'path'
 childProcess = require 'child_process'
 os = require 'os'
 fs = require 'fs'
+ajax = require './lib/ajax'
 
 KEYGEN_BIN_PATH = if App.platform.isWindows
   path.join(App.binPath, 'nitrous-ssh-keygen.exe')
@@ -18,6 +19,26 @@ App.SSHKey = klass = Em.Object.extend
   publicKeyPath: (->
     path.join App.get('userDataPath'), 'id_rsa.pub'
   ).property 'App.userDataPath'
+
+  publish: (container, cb) ->
+
+    publish = =>
+      ajax(
+        type: 'POST'
+        url: "/api/v0/containers/#{container.get 'id'}/keys"
+        data:
+          key: @get 'publicKey'
+      ).then (res) ->
+        cb?()
+      , (jqxhr) ->
+        json = jqxhr.responseJSON
+        cb?(json.error_description || json.error || "Failed to upload SSH key")
+
+    if @get("publicKey") == null
+      load =>
+        publish()
+    else
+      publish()
 
   # load ssh key, generate if not exists
   load: (cb) ->
