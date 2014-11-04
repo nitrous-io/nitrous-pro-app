@@ -7,6 +7,11 @@ UNISON_BIN_PATH = if App.platform.isWindows
 else
   path.join(App.binPath, 'nitrous-unison.sh')
 
+SSH_BIN_PATH = if App.platform.isWindows
+  path.join(App.binPath, 'nitrous-ssh.exe')
+else
+  path.join(App.binPath, 'nitrous-ssh')
+
 IGNORE_LIST = 'Name {.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
 
 App.Unison = klass = Em.Object.extend
@@ -78,7 +83,8 @@ App.Unison = klass = Em.Object.extend
       '-ignorecase', 'true' # case-insensitive
       '-prefer', remotePath
       '-terse' # reduce output
-      '-servercmd=/nitrous/nitrous-unison'
+      '-servercmd', '/nitrous/nitrous-unison'
+      '-sshcmd', SSH_BIN_PATH
     ]
 
     # place archives file in syncPath/.unison
