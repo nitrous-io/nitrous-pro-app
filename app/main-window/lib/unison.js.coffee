@@ -61,11 +61,14 @@ App.Unison = klass = Em.Object.extend
     else
       '/dev/null'
 
+    privateKeyPath = App.get('sshKey.privateKeyPath').replace(/\ /g, if App.platform.isWindows then '^ ' else '\\ ')
+
     sshArgs = [
       '-o', "UserKnownHostsFile=#{nullFile}"     # ignore known hosts
       '-o', 'StrictHostKeyChecking=no'           # no host key checking
       '-o', 'PreferredAuthentications=publickey' # pub key authentication only
-      '-q'                                    # quiet mode
+      '-q'                                       # quiet mode
+      '-i', privateKeyPath
     ]
 
     args = [
