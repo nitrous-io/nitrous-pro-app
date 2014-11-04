@@ -80,13 +80,6 @@ App.Container = klass = Em.Object.extend
     "ssh://#{sshUsername}@#{hostname}:#{sshPort}"
   ).property 'sshUsername', 'host.hostname', 'sshPort'
 
-  configPath: (->
-    return unless slug = @get('slug')
-    configPath = path.join(App.get('dataPath'), slug)
-    fs.mkdirSync(configPath, '0755') unless fs.existsSync(configPath)
-    configPath
-  ).property 'App.dataPath', 'slug'
-
 klass.reopenClass
   fetch: ->
     containers = Em.ArrayProxy.create()

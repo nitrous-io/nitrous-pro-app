@@ -11,15 +11,31 @@ platform =
   isMac: os.type() == 'Darwin'
   isLinux: os.type() == 'Linux'
 
+username = DATA.username
+
 homePath = if platform.isWindows
   process.env.HOMEDRIVE + process.env.HOMEPATH
 else
   process.env.HOME
 
+binPath = if platform.isWindows
+  path.join(__dirname, 'bin', 'win')
+else
+  path.join(__dirname, 'bin', 'osx')
+
+dataPath = if platform.isWindows
+  path.join(process.env.APPDATA, 'Nitrous')
+else if platform.isMac
+  path.join(homePath, 'Library', 'Application Support', 'Nitrous')
+else
+  path.join(homePath, '.nitrous')
+
 window.MainWindow = klass = Em.Application.extend Em.Evented,
   rootElement: '#app'
 
-  username: DATA.username
+  username: username
+  sshKey: null
+
   hosts: null
   containers: null
   selectedContainer: null
@@ -30,18 +46,9 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   platform: platform
 
   homePath: homePath
-
-  binPath: if platform.isWindows
-    path.join(__dirname, 'bin', 'win')
-  else
-    path.join(__dirname, 'bin', 'osx')
-
-  dataPath: if platform.isWindows
-    path.join(process.env.APPDATA, 'Nitrous')
-  else if platform.isMac
-    path.join(homePath, 'Library', 'Application Support', 'Nitrous')
-  else
-    path.join(homePath, '.nitrous')
+  binPath: binPath
+  dataPath: dataPath
+  userDataPath: path.join(dataPath, username)
 
   killAll: (procName, cb) ->
     if platform.isWindows
@@ -57,9 +64,12 @@ $(window).on 'online', ->
 $(window).on 'offline', ->
   App.set 'online', false
 
-App.on 'app-did-load', ->
-
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
+fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 
 App.Router.map ->
   @route 'main-window', path: '/'
+
+App.on 'app-did-load', ->
+  App.set 'sshKey', sshKey = App.SSHKey.create()
+  sshKey.load()
