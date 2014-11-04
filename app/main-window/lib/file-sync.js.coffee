@@ -44,7 +44,7 @@ App.FileSync = klass = Em.Object.extend
       fs.mkdir syncPath, '0755', (err) =>
         return cb?(err) if err && err.code != 'EEXIST'
         # initialize watcher
-        @set 'unison', App.Unison.create(container: container, syncPath: syncPath)
+        @set 'unison', App.Unison.create(container: container, syncPath: syncPath, onPermissionDenied: (() => @permissionDenied()))
         @set 'watcher', watcher = new App.Watcher(syncPath)
         watcher.on 'change', (change) =>
           console.log "#{slug}: detected local fs change at #{change}"
@@ -53,14 +53,28 @@ App.FileSync = klass = Em.Object.extend
         remoteWatcher.on 'change', (change) =>
           console.log "#{slug}: detected remote fs change at #{change}"
           @performSync()
-        # perform initial sync, and then start watcher
-        @performSync =>
-          return unless @get 'started' # if sync is disabled before first sync is completed
-          console.log "#{slug}: starting watcher..."
-          watcher.start()
-          console.log "#{slug}: starting remote watcher..."
-          remoteWatcher.start()
+        # perform initial sync
+        @kickOffInitialSync()
         cb?()
+
+  permissionDenied: ->
+    if @get 'permissionPublishRequested'
+      @set 'permissionPublishRequested', false
+      return window.alert("Access denied when connecting to service")
+
+    cxt = this
+    sshKey = App.get('sshKey')
+    console.log "Requesting publish of SSH key"
+    sshKey.publish @get('container'), (err) =>
+      if err
+        @set 'permissionPublishRequested', false
+        @set 'started', false
+        @set 'enabled', false
+        window.alert err
+      else
+        @kickOffInitialSync()
+
+    @set 'permissionPublishRequested', true
 
   stopWatcher: ->
     if watcher = @get 'watcher'
@@ -75,6 +89,16 @@ App.FileSync = klass = Em.Object.extend
       unison.abort()
       @set 'unison', null
     @set 'started', false
+
+  kickOffInitialSync: ->
+    @performSync =>
+      # initial sync succeeded, fire up watchers
+      return unless @get 'started' # if sync is disabled before first sync is completed
+      slug = @get('slug')
+      console.log "#{slug}: starting watcher..."
+      @get('watcher').start()
+      console.log "#{slug}: starting remote watcher..."
+      @get('remoteWatcher').start()
 
   performSync: (cb) ->
     return unless @get 'started'

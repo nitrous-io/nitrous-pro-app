@@ -56,7 +56,6 @@ klass = class App.Watcher extends EventEmitter
         '-o', 'UserKnownHostsFile=/dev/null'       # ignore known hosts
         '-o', 'StrictHostKeyChecking=no'           # no host key checking
         '-o', 'PreferredAuthentications=publickey' # pub key authentication only
-        '-q'                                       # quiet mode
         '-p', port
         '-i', privateKeyPath
         host
