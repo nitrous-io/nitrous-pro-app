@@ -43,13 +43,28 @@ App.Container = klass = Em.Object.extend
     config
   ).property 'id'
 
-  sshUsername: (->
-    username = null
-    if envVars = @get 'config.env'
-      for envVar in envVars
-        break if username = envVar.match(/^NITROUS_USERNAME=(.+)$/)?[1]
-    username
+  configLoaded: Em.computed.notEmpty 'config.content'
+
+  envVarHash: (->
+    hash = {}
+    return hash unless envVars = @get 'config.env'
+    for v in envVars
+      m = v.match /^([^=]+)=(.*)$/
+      key = m[1]
+      val = m[2]
+      hash[key] = val
+    hash
   ).property 'config.env.@each'
+
+  sshUsername: Em.computed.alias 'envVarHash.NITROUS_USERNAME'
+
+  imageVersion: (->
+    version = window.parseInt(@get('envVarHash.NITROUS_IMAGE_VERSION'), 10)
+    return null if isNaN(version)
+    version
+  ).property 'envVarHash.NITROUS_IMAGE_VERSION'
+
+  fileSyncSupported: Em.computed.gte 'imageVersion', 1
 
   sshPort: (->
     port = null
@@ -76,7 +91,7 @@ klass.reopenClass
     ).then (res) ->
       if Em.isArray(res.containers)
         containers.set 'content', res.containers.map (c) ->
-          App.Container.create
+          container = App.Container.create
             id: c.id
             cid: c.cid
             name: c.name
@@ -84,6 +99,8 @@ klass.reopenClass
             state: c.state
             image: c.image
             hostId: c.host_id
+          container.get 'config'
+          container
     , (jqxhr) ->
       json = jqxhr.responseJSON
       window.alert(json.error_description || json.error || "Failed to load containers (#{jqxhr.statusText})")

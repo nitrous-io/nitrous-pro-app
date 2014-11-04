@@ -8,7 +8,13 @@
             li class={container.selected:selected} click='selectContainer container'
               = container.displayName
 .content
-  if App.selectedContainer
+  with App.selectedContainer
     h2
-      = App.selectedContainer.displayName
-    = ui-sync-switch on=App.selectedContainer.fileSync.enabled
+      = displayName
+    if configLoaded
+      if fileSyncSupported
+        = ui-sync-switch on=fileSync.enabled
+      else
+        p File Sync Not Supported!
+    else
+      p loading...
