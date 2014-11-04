@@ -18,6 +18,8 @@ else
 
 window.MainWindow = klass = Em.Application.extend
   rootElement: '#app'
+
+  username: DATA.username
   hosts: null
   containers: null
   selectedContainer: null

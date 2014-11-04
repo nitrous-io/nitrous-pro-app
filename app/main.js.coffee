@@ -17,9 +17,13 @@ app.on 'ready', ->
   nitrous.loginWindow.on 'closed', ->
     nitrous.loginWindow = null
 
-  ipc.on 'logged-in', (event) ->
+  ipc.on 'logged-in', (event, username) ->
     nitrous.loginWindow.close()
-    nitrous.mainWindow = initWindow('main-window/main-window', width: 800, height: 600)
+    nitrous.mainWindow = initWindow 'main-window/main-window',
+      width: 800
+      height: 600
+      data:
+        username: username
     nitrous.mainWindow.on 'closed', ->
       nitrous.mainWindow = null
 
@@ -27,7 +31,7 @@ initWindow = (js, options={}) ->
   win = new BrowserWindow(options)
   win.loadUrl('file://' + __dirname + '/index.html')
   win.webContents.on 'did-finish-load', ->
+    win.webContents.send 'load-js', js, options.data
     win.show()
     win.focus()
-    win.webContents.send 'load-js', js
   win

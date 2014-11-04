@@ -16,5 +16,6 @@ document.body.addEventListener('drop', (e) ->
 
 ipc = require 'ipc'
 
-ipc.on 'load-js', (js) ->
+ipc.on 'load-js', (js, data) ->
+  window.DATA = data
   $('head').append($('<script>').attr('src', js + '.js'))
