@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+shell = require 'shell'
 
 NITROUS_FOLDER_PATH = path.join(App.homePath, 'Nitrous')
 
@@ -28,6 +29,12 @@ App.FileSync = klass = Em.Object.extend
     else
       @stopWatcher()
   ).observes 'enabled', 'container.state', 'App.online', 'syncPath', 'container.sshUrl'
+
+  showSyncFolder: ->
+    if App.platform.isMac
+      shell.openExternal "file://#{@get 'syncPath'}"
+    else
+      shell.openItem @get('syncPath')
 
   startWatcher: (cb) ->
     return if @get 'started'

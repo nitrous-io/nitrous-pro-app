@@ -17,6 +17,7 @@
     if configLoaded
       if fileSyncSupported
         = ui-sync-switch on=fileSync.enabled
+        p click='showSyncFolder fileSync' Show Folder
       else
         p File Sync Not Supported!
     else
