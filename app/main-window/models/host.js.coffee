@@ -40,5 +40,5 @@ klass.reopenClass
             ipAddress: h.ip_address
     , (jqxhr) ->
       json = jqxhr.responseJSON
-      window.alert(json.error_description || json.error || "Failed to load hosts (#{jqxhr.statusText})")
+      window.alert(json?.error_description || json?.error || "Failed to load hosts (#{jqxhr.statusText})")
     hosts

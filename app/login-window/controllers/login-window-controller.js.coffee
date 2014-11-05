@@ -9,7 +9,7 @@ App.LoginWindowController = Em.Controller.extend
 
   fail: (jqxhr) ->
     json = jqxhr.responseJSON
-    window.alert(json.error_description || json.error || jqxhr.statusText)
+    window.alert(json?.error_description || json?.error || jqxhr.statusText)
     @set 'loggingIn', false
 
   fetchUser: ->

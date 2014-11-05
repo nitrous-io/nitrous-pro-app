@@ -101,5 +101,5 @@ klass.reopenClass
           container
     , (jqxhr) ->
       json = jqxhr.responseJSON
-      window.alert(json.error_description || json.error || "Failed to load containers (#{jqxhr.statusText})")
+      window.alert(json?.error_description || json?.error || "Failed to load containers (#{jqxhr.statusText})")
     containers

@@ -31,7 +31,7 @@ App.SSHKey = klass = Em.Object.extend
         cb?()
       , (jqxhr) ->
         json = jqxhr.responseJSON
-        cb?(new Error(json.error_description || json.error || "Failed to upload SSH key"))
+        cb?(new Error(json?.error_description || json?.error || "Failed to upload SSH key"))
 
     if @get("publicKey") == null
       @load (err) =>
@@ -66,3 +66,8 @@ App.SSHKey = klass = Em.Object.extend
         childProcess.execFile KEYGEN_BIN_PATH, args, {}, (err, stdout, stderr) ->
           return cb?(err) if err
           load()
+
+  deleteKeys: ->
+    @set 'publicKey', null
+    try for keyPath in [@get('privateKeyPath'), @get('publicKeyPath')]
+      fs.unlinkSync(keyPath) if keyPath

@@ -5,6 +5,7 @@ os = require 'os'
 fs = require 'fs'
 path = require 'path'
 childProcess = require 'child_process'
+ipc = require 'ipc'
 
 platform =
   isWindows: os.type() == 'Windows_NT'
@@ -67,9 +68,15 @@ $(window).on 'offline', ->
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
 fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 
-App.Router.map ->
-  @route 'main-window', path: '/'
-
 App.on 'app-did-load', ->
   App.set 'sshKey', sshKey = App.SSHKey.create()
   sshKey.load()
+
+  # load main window route
+  App.Router.map ->
+    @route 'main-window', path: '/'
+
+App.on 'log-out', ->
+  window.localStorage.removeItem 'access-token'
+  App.get('sshKey')?.deleteKeys()
+  ipc.send 'logged-out'
