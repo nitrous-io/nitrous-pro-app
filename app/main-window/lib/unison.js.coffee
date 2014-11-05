@@ -12,6 +12,8 @@ SSH_BIN_PATH = if App.platform.isWindows
 else
   path.join(App.binPath, 'nitrous-ssh')
 
+SHORTNAME_BIN_PATH = path.join(App.binPath, 'shortname.bat')
+
 IGNORE_LIST = 'Name {.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
 
 App.Unison = klass = Em.Object.extend
@@ -61,72 +63,79 @@ App.Unison = klass = Em.Object.extend
     else
       '/dev/null'
 
-    privateKeyPath = App.get('sshKey.privateKeyPath').replace(/\ /g, if App.platform.isWindows then '^ ' else '\\ ')
+    invokeUnison = (privateKeyPath) =>
+      sshArgs = [
+        '-o', "UserKnownHostsFile=#{nullFile}"     # ignore known hosts
+        '-o', 'StrictHostKeyChecking=no'           # no host key checking
+        '-o', 'PreferredAuthentications=publickey' # pub key authentication only
+        '-i', privateKeyPath
+      ]
 
-    sshArgs = [
-      '-o', "UserKnownHostsFile=#{nullFile}"     # ignore known hosts
-      '-o', 'StrictHostKeyChecking=no'           # no host key checking
-      '-o', 'PreferredAuthentications=publickey' # pub key authentication only
-      '-q'                                       # quiet mode
-      '-i', privateKeyPath
-    ]
+      args = [
+        syncPath
+        remotePath
+        '-ui', 'text'
+        '-auto'  # auto accept default actions
+        '-batch' # ask no questions
+        '-perms=777'  # sync all permissions
+        '-confirmbigdel=false' # don't ask about whole replica deletes
+        '-log=false'  # don't log
+        '-rsrc=false' # don't sync resource fork
+        '-sshargs', sshArgs.join ' '
+        '-ignore', IGNORE_LIST
+        '-ignorecase', 'true' # case-insensitive
+        '-prefer', remotePath
+        '-terse' # reduce output
+        '-servercmd', '/nitrous/nitrous-unison'
+        '-sshcmd', SSH_BIN_PATH
+      ]
 
-    args = [
-      syncPath
-      remotePath
-      '-ui', 'text'
-      '-auto'  # auto accept default actions
-      '-batch' # ask no questions
-      '-perms=777'  # sync all permissions
-      '-confirmbigdel=false' # don't ask about whole replica deletes
-      '-log=false'  # don't log
-      '-rsrc=false' # don't sync resource fork
-      '-sshargs', sshArgs.join ' '
-      '-ignore', IGNORE_LIST
-      '-ignorecase', 'true' # case-insensitive
-      '-prefer', remotePath
-      '-terse' # reduce output
-      '-servercmd', '/nitrous/nitrous-unison'
-      '-sshcmd', SSH_BIN_PATH
-    ]
+      # place archives file in syncPath/.unison
+      unisonArchivesPath = path.join(syncPath, '.unison')
+      env = $.extend({}, process.env)
+      env.UNISON = unisonArchivesPath
 
-    # place archives file in syncPath/.unison
-    unisonArchivesPath = path.join(syncPath, '.unison')
-    env = $.extend({}, process.env)
-    env.UNISON = unisonArchivesPath
+      if App.platform.isWindows
+        env.HOME = App.homePath
+        env.Path = App.binPath + ';' + process.env.Path
+        fs.mkdir unisonArchivesPath, '0755', (err) ->
+          childProcess.execFile 'attrib.exe', ['+h', unisonArchivesPath]
+
+      options =
+        cwd: App.homePath
+        detached: false
+        env: env
+
+      fs.exists unisonArchivesPath, (archiveExists) =>
+        if !archiveExists || @get 'shouldIgnoreArchives'
+          @set 'shouldIgnoreArchives', false
+          args.push '-ignorearchives'
+
+        if @get 'shouldIgnoreLocks'
+          @set 'shouldIgnoreLocks', false
+          args.push '-ignorelocks'
+
+        console.log "#{@get 'container.slug'}: syncing..."
+
+        proc = if App.platform.isWindows
+          childProcess.spawn UNISON_BIN_PATH, args, options
+        else
+          args.unshift UNISON_BIN_PATH
+          childProcess.spawn '/bin/bash', args, options
+
+        @set 'process', proc
+        proc.stdout.on 'data', (data) => @handleProcessOutput(data)
+        proc.stderr.on 'data', (data) => @handleProcessOutput(data)
+        proc.on 'exit', (code) => @processDidExit(code, cb)
+
+    privateKeyPath = App.get 'sshKey.privateKeyPath'
 
     if App.platform.isWindows
-      env.HOME = App.homePath
-      env.Path = App.binPath + ';' + process.env.Path
-      fs.mkdir unisonArchivesPath, '0755', (err) ->
-        childProcess.execFile 'attrib.exe', ['+h', unisonArchivesPath]
-
-    options =
-      cwd: App.homePath
-      detached: false
-      env: env
-
-    fs.exists unisonArchivesPath, (archiveExists) =>
-      if !archiveExists || @get 'shouldIgnoreArchives'
-        @set 'shouldIgnoreArchives', false
-        args.push '-ignorearchives'
-
-      if @get 'shouldIgnoreLocks'
-        @set 'shouldIgnoreLocks', false
-        args.push '-ignorelocks'
-
-      console.log "#{@get 'container.slug'}: syncing..."
-
-      proc = if App.platform.isWindows
-        childProcess.spawn UNISON_BIN_PATH, args, options
-      else
-        args.unshift UNISON_BIN_PATH
-        childProcess.spawn '/bin/bash', args, options
-
-      @set 'process', proc
-      proc.stdout.on 'data', (data) => @handleProcessOutput(data)
-      proc.stderr.on 'data', (data) => @handleProcessOutput(data)
-      proc.on 'exit', (code) => @processDidExit(code, cb)
+      childProcess.execFile SHORTNAME_BIN_PATH, [privateKeyPath], (err, stdout, stderr) ->
+        console.log stdout
+        invokeUnison(stdout)
+    else
+      invokeUnison(privateKeyPath.replace(/\ /g, '\\ '))
 
   handleProcessOutput: (data) ->
     data = data.toString('utf8')
