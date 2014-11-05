@@ -32,8 +32,7 @@ App.Unison = klass = Em.Object.extend
   shouldIgnoreArchives: false
   shouldIgnoreLocks: false
   shouldRetryWithDelay: null
-
-  onPermissionDenied: null
+  shouldRetryAfterUploadingPublicKey: false
 
   abort: ->
     console.log "#{@get 'container.slug'}: aborting sync..."
@@ -47,6 +46,7 @@ App.Unison = klass = Em.Object.extend
       shouldIgnoreArchives: false
       shouldIgnoreLocks: false
       shouldRetryWithDelay: null
+      shouldRetryAfterUploadingPublicKey: false
 
   sync: (cb) ->
     if @get 'syncing'
@@ -165,8 +165,9 @@ App.Unison = klass = Em.Object.extend
         @set 'shouldRetryWithDelay', 5000
     if data.indexOf('Uncaught exception Sys_blocked_io') != -1
       @set 'shouldRetryWithDelay', 200
-    if data.indexOf('Permission denied') != -1
-      @set 'permissionDenied', true
+    if data.indexOf('Permission denied (') != -1
+      console.log "#{@get 'container.slug'}: ssh permission denied"
+      @set 'shouldRetryAfterUploadingPublicKey', true
     else if transferCount = data.match(/Synchronization complete at .+ \(([\d,]+) items? transferred/)?[1]
       @set 'transferCount', window.parseInt(transferCount.replace(/,/g, ''), 10)
 
@@ -175,12 +176,12 @@ App.Unison = klass = Em.Object.extend
     @set 'process', null
     @set 'syncing', false
 
-    # handle when we were unable to authenticate
-    # and request a key be assigned
-    if @get 'permissionDenied'
-      console.log "Notifying of permission denied"
-      @get('onPermissionDenied')?()
-      return @set 'permissionDenied', false
+    if @get 'shouldRetryAfterUploadingPublicKey'
+      @set 'shouldRetryAfterUploadingPublicKey', false
+      @uploadPublicKey (err) =>
+        return @scheduleRetry(cb, 5000) if err
+        @sync(cb)
+      return
 
     if @get 'shouldAbort'
       return @set 'shouldAbort', false
@@ -208,6 +209,15 @@ App.Unison = klass = Em.Object.extend
         console.log "#{@get 'container.slug'}: retrying sync..."
         @sync(cb)
       , delay)
+
+  uploadPublicKey: (cb) ->
+    container = @get 'container'
+    slug = container.get 'slug'
+    console.log "#{slug}: Uploading public key..."
+
+    sshKey = App.get('sshKey')
+    sshKey.upload container, (err) =>
+      cb?(err)
 
 klass.reopenClass
   killAll: (cb) ->

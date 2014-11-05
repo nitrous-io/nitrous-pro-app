@@ -20,8 +20,8 @@ App.SSHKey = klass = Em.Object.extend
     path.join App.get('userDataPath'), 'id_rsa.pub'
   ).property 'App.userDataPath'
 
-  publish: (container, cb) ->
-    publish = =>
+  upload: (container, cb) ->
+    upload = =>
       ajax(
         type: 'POST'
         url: "/api/v0/containers/#{container.get 'id'}/keys"
@@ -36,9 +36,9 @@ App.SSHKey = klass = Em.Object.extend
     if @get("publicKey") == null
       @load (err) =>
         return cb?(err) if err
-        publish()
+        upload()
     else
-      publish()
+      upload()
 
   # load ssh key, generate if not exists
   load: (cb) ->
