@@ -5,3 +5,6 @@ App.MainWindowController = Em.Controller.extend
 
     showSyncFolder: (fileSync) ->
       fileSync.showSyncFolder()
+
+    openSSHShell: (container) ->
+      App.SSHShell.create().startShell container
