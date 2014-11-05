@@ -7,6 +7,11 @@ WATCHER_BIN_PATH = if App.platform.isWindows
 else
   path.join(App.binPath, 'nitrous-watcher')
 
+SSH_BIN_PATH = if App.platform.isWindows
+  path.join(App.binPath, 'nitrous-ssh.exe')
+else
+  path.join(App.binPath, 'nitrous-ssh')
+
 REMOTE_WATCHER_BIN_PATH = '/nitrous/nitrous-watcher'
 
 startedWatchers = []
@@ -41,7 +46,10 @@ klass = class App.Watcher extends EventEmitter
 
   start: ->
     @stop() if @proc
+
     @proc = if @ssh
+      privateKeyPath = App.get 'sshKey.privateKeyPath'
+
       [host, port] = @ssh.slice(6).split(':')
 
       sshArgs = [
@@ -50,13 +58,15 @@ klass = class App.Watcher extends EventEmitter
         '-o', 'PreferredAuthentications=publickey' # pub key authentication only
         '-q'                                       # quiet mode
         '-p', port
+        '-i', privateKeyPath
         host
         REMOTE_WATCHER_BIN_PATH
         '/home/action/workspace'
       ]
-      childProcess.spawn 'ssh', sshArgs, detached: false
+      childProcess.spawn SSH_BIN_PATH, sshArgs, detached: false
     else
       childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
+
     startedWatchers.push(this)
     @proc.stdout.on 'data', (data) => @_processOutput(data)
     @proc.stderr.on 'data', (data) => @_processOutput(data)
