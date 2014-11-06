@@ -49,8 +49,10 @@ int main(int argc, const char * argv[]) {
             "end tell\n";
         } else {
             appleScriptSource = @"tell app \"Terminal\"\n"
-            "   do script \"%@\"\n"
+            "   do script \"%@ && exit\"\n"
             "   activate\n"
+            "   delay 0.5\n"
+            "   tell application \"System Events\" to keystroke \"k\" using command down\n"
             "end tell";
         }
         

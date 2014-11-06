@@ -1,0 +1,90 @@
+path = require 'path'
+childProcess = require 'child_process'
+
+LAUNCH_BIN_PATH = path.join(App.binPath, "nitrous-ssh-launcher")
+SSH_BIN_PATH = if App.platform.isWindows
+  path.join(App.binPath, 'nitrous-ssh.exe')
+else
+  path.join(App.binPath, 'nitrous-ssh')
+
+App.SSHShell = Em.Object.extend
+  sshUser: null
+  hostname: null
+  port: null
+  privateKeyPath: null
+  container: null
+
+  attemptedUpload: false
+
+  startShell: (container) ->
+    @set('container', container)
+    @set('sshUser', container.get('sshUsername'))
+    @set('hostname', container.get('host.hostname'))
+    @set('port', container.get('sshPort'))
+    @set('privateKeyPath', App.get 'sshKey.privateKeyPath')
+
+    @_testAndLaunch()
+
+  _testAndLaunch: ->
+    # test SSH is okay incase we need to upload keys
+    baseSshArgs = [
+      '-o', 'UserKnownHostsFile=/dev/null'       # ignore known hosts
+      '-o', 'StrictHostKeyChecking=no'           # no host key checking
+      '-o', 'PreferredAuthentications=publickey' # pub key authentication only
+      '-p', @get('port')
+      '-i', @get('privateKeyPath')
+      "#{@get('sshUser')}@#{@get('hostname')}"
+    ]
+
+    testSSHArgs = baseSshArgs.concat ["echo nitrous-success"]
+
+    @proc = childProcess.spawn SSH_BIN_PATH, testSSHArgs, detached: false
+    @waitTimeout = window.setTimeout(=>
+      @_testTimedOut()
+    , 3000)
+    @proc.stdout.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
+    @proc.stderr.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
+
+  _handleTestShell: (sshArgs, data) ->
+    decoded = data.toString('utf8')
+    console.log decoded
+
+    if decoded.indexOf("nitrous-success") != -1
+      @_cancelTimeout()
+
+      # invoke SSH interactively
+      if App.platform.isWindows
+        App.mintty.ssh(@get('sshUser'), @get('hostname'), @get('port'), @get('container.displayName'), @get('privateKeyPath'))
+      else
+        sshArgs.unshift SSH_BIN_PATH
+        identityLoc = sshArgs.indexOf('-i') + 1
+        sshArgs[identityLoc] = "\"#{sshArgs[identityLoc]}\""
+
+        console.log "Launching:", LAUNCH_BIN_PATH, sshArgs.join(" ")
+        childProcess.spawn LAUNCH_BIN_PATH, sshArgs, detached: false
+    else if decoded.indexOf("Permission denied") != -1
+      @_cancelTimeout()
+
+      if @get('attemptedUpload')
+        window.alert("Unable to launch console, service rejected uploaded key")
+        return @set('attemptedUpload', false)
+
+      App.get('sshKey').upload @get('container'), (err) =>
+        @set('attemptedUpload', true)
+        if err
+          window.alert("Unable to launch console, key upload failed")
+        else
+          @_testAndLaunch()
+    else if decoded.indexOf("Could not resolve") != -1
+      @_cancelTimeout()
+
+      window.alert("Unable to launch console, server address not found")
+
+  _cancelTimeout: ->
+    if @waitTimeout
+      window.clearTimeout @waitTimeout
+
+  _testTimedOut: ->
+    if @proc
+      @proc.kill('SIGKILL')
+    window.alert "Unable to launch console, timed out"

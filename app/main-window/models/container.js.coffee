@@ -63,6 +63,10 @@ App.Container = klass = Em.Object.extend
   ).property 'envVarHash.NITROUS_IMAGE_VERSION'
 
   fileSyncSupported: Em.computed.gte 'imageVersion', 1
+  sshAccessSupported: (->
+    return unless @get 'envVarHash.NITROUS_SSH_ENABLED'
+    @get('envVarHash.NITROUS_SSH_ENABLED') == "true"
+  ).property 'envVarHash.NITROUS_SSH_ENABLED'
 
   sshPort: (->
     port = null

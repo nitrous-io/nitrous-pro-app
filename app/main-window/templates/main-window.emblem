@@ -20,5 +20,10 @@
         p click='showSyncFolder fileSync' Show Folder
       else
         p File Sync Not Supported!
+
+      if sshAccessSupported
+        p click='openSSHShell App.selectedContainer' Console
+      else
+        p Console not supported
     else
       p loading...
