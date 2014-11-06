@@ -79,4 +79,9 @@ App.on 'app-did-load', ->
 App.on 'log-out', ->
   window.localStorage.removeItem 'access-token'
   App.get('sshKey')?.deleteKeys()
+  App.Watcher.stopAll()
   ipc.send 'logged-out'
+
+window.onbeforeunload = ->
+  App.Watcher.stopAll()
+  return true

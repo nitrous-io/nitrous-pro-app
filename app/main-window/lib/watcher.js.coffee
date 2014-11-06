@@ -57,6 +57,8 @@ klass = class App.Watcher extends EventEmitter
         '-o', 'StrictHostKeyChecking=no'           # no host key checking
         '-o', 'PreferredAuthentications=publickey' # pub key authentication only
         '-p', port
+        '-t'
+        '-t'
         '-i', privateKeyPath
         host
         REMOTE_WATCHER_BIN_PATH
@@ -88,6 +90,7 @@ klass = class App.Watcher extends EventEmitter
         @_notify(filePath)
 
 klass.stopAll = ->
-  startedWatchers.forEach (watcher) ->
+  knownWatchers = startedWatchers.slice 0
+  knownWatchers.forEach (watcher) ->
     watcher.stop()
   startedWatchers = []
