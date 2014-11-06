@@ -56,10 +56,14 @@ App.FileSync = klass = Em.Object.extend
         watcher.on 'change', (change) =>
           console.log "#{slug}: detected local fs change at #{change}"
           @performSync()
+        watcher.on 'abruptExit', =>
+          @_abruptExitReceived()
         @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
         remoteWatcher.on 'change', (change) =>
           console.log "#{slug}: detected remote fs change at #{change}"
           @performSync()
+        remoteWatcher.on 'abruptExit', =>
+          @_abruptExitReceived()
         # perform initial sync
         @kickOffInitialSync()
         cb?()
@@ -77,6 +81,7 @@ App.FileSync = klass = Em.Object.extend
       unison.abort()
       @set 'unison', null
     @set 'started', false
+    @set 'enabled', false
 
   kickOffInitialSync: ->
     @performSync =>
@@ -87,6 +92,10 @@ App.FileSync = klass = Em.Object.extend
       @get('watcher').start()
       console.log "#{slug}: starting remote watcher..."
       @get('remoteWatcher').start()
+
+  _abruptExitReceived: ->
+    @stopWatcher()
+    window.alert 'Stopping file sync, one or more watchers exited unexpectedly.'
 
   performSync: (cb) ->
     return unless @get 'started'

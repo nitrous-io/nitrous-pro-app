@@ -46,6 +46,7 @@ klass = class App.Watcher extends EventEmitter
 
   start: ->
     @stop() if @proc
+    @expectingStop = false
 
     @proc = if @ssh
       privateKeyPath = App.get 'sshKey.privateKeyPath'
@@ -71,8 +72,10 @@ klass = class App.Watcher extends EventEmitter
     startedWatchers.push(this)
     @proc.stdout.on 'data', (data) => @_processOutput(data)
     @proc.stderr.on 'data', (data) => @_processOutput(data)
+    @proc.on 'exit', (code) => @_processDidQuit(code)
 
   stop: ->
+    @expectingStop = true
     @_clearNotifyTimeout()
     if @proc
       @proc.stdout.removeAllListeners()
@@ -88,6 +91,21 @@ klass = class App.Watcher extends EventEmitter
       if fileName = match[1]
         filePath = path.join(@path, fileName)
         @_notify(filePath)
+    else if data.indexOf('inotify_add_watch') != -1
+      window.alert 'Box has exceeded watch amount, please contact support.'
+      @stop()
+      @emit 'abruptExit'
+
+  _processDidQuit: (code) ->
+    return if @expectingStop
+    @quitCount ||= 0
+    @quitCount += 1
+    if @quitCount <= 2
+      console.log 'Unexpected quit, restarting'
+      @start()
+    else
+      @emit 'abruptExit'
+
 
 klass.stopAll = ->
   knownWatchers = startedWatchers.slice 0
