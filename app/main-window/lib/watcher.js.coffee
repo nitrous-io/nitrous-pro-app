@@ -67,7 +67,11 @@ klass = class App.Watcher extends EventEmitter
       ]
       childProcess.spawn SSH_BIN_PATH, sshArgs, detached: false
     else
-      childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
+      p = childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
+      if @badState
+        @badState = false
+        @emit 'watcherRestored', this
+      p
 
     startedWatchers.push(this)
     console.log "Starting watcher, remote:", @ssh != null
@@ -95,13 +99,21 @@ klass = class App.Watcher extends EventEmitter
         @_notify(filePath)
     else if data.indexOf('inotify_add_watch') != -1
       window.alert 'Box has exceeded watch amount, please contact support.'
+    else if @badState
+      if data.indexOf('Ready to watch') != -1
+        @badState = false
+        @emit 'watcherRestored', this
 
   _processDidQuit: (code) ->
+    return if @expectingStop
+
+    @badState = true
     console.log 'Unexpected quit, restarting'
+    @emit 'watcherRestarting', this
     @quitRestarter = window.setTimeout(=>
       @quitRestarter = null
       @start()
-    , 200)
+    , 5000)
 
   _clearQuitRestarter: ->
     if @quitRestarter
