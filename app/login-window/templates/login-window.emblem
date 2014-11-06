@@ -1,12 +1,18 @@
-form submit=login
-  h3 login
-  div
-    label for='username' Username
-    = input value=username type='text' disabled=loggingIn
-  div
-    label for='password' Password
-    = input value=password type='password' disabled=loggingIn
+form submit=login class={invalidCredentials:shake}
+  h1 Nitrous
 
-  input type='submit' value='Login' disabled=loggingIn
+  .fields
+    = input class='username-field' value=username type='text' placeholder='Username or Email' disabled=loggingIn
+    = input value=password type='password' placeholder='Password' disabled=loggingIn
+
   if loggingIn
-    | logging in...
+    button.login-btn disabled='disabled'
+      i.spinner
+      | Logging in...
+  else
+    input.login-btn type='submit' value='Login' disabled=view.loginButtonDisabled
+
+  .links
+    p
+      | Don't have an account?&nbsp;
+      a href='#' click=signUp Sign Up

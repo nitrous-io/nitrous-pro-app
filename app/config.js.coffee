@@ -1,2 +1,3 @@
 module.exports =
-  host: 'https://pro.n2ostaging.com'
+  host: 'https://pro.nitrous.io'
+  signUpUrl: 'https://pro.nitrous.io/'

@@ -7,6 +7,16 @@ App.LoginWindowView = Em.View.extend
   elementId: 'login-window-view'
   templateName: 'login-window/login-window'
 
+  loginButtonDisabled: (->
+    !@get('controller.username') || !@get('controller.password') || @get('controller.loggingIn')
+  ).property 'controller.username', 'controller.password', 'controller.loggingIn'
+
+  didReceiveInvalidCredentails: (->
+    if @get('controller.invalidCredentials')
+      Em.run.scheduleOnce 'afterRender', =>
+        @$('.username-field').focus().select()
+    ).observes 'controller.invalidCredentials'
+
   didInsertElement: ->
     @_super.apply this, arguments
     menuTemplate = @menuTemplate()
@@ -22,6 +32,12 @@ App.LoginWindowView = Em.View.extend
       Menu.setApplicationMenu(menu)
     else
       currentWindow.setMenu(menu)
+
+    Em.run.scheduleOnce 'afterRender', =>
+      currentWindow.setResizable(false)
+      currentWindow.show()
+      currentWindow.focus()
+      @$('.username-field').focus().select()
 
   menuTemplate: ->
     if App.platform.isMac

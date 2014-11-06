@@ -1,15 +1,18 @@
 ipc = require 'ipc'
 config = require './config'
 ajax = require './lib/ajax'
+shell = require 'shell'
 
 App.LoginWindowController = Em.Controller.extend
   loggingIn: false
   username: null
   password: null
+  invalidCredentials: false
 
   fail: (jqxhr) ->
-    json = jqxhr.responseJSON
-    window.alert(json?.error_description || json?.error || jqxhr.statusText)
+    Em.run.scheduleOnce 'afterRender', ->
+      json = jqxhr.responseJSON
+      window.alert((json?.error_description || json?.error || jqxhr.statusText).toString().capitalize())
     @set 'loggingIn', false
 
   fetchUser: ->
@@ -26,7 +29,9 @@ App.LoginWindowController = Em.Controller.extend
 
   actions:
     login: ->
-      @set 'loggingIn', true
+      @setProperties
+        loggingIn: true
+        invalidCredentials: false
 
       ajax(
         type: 'POST'
@@ -40,4 +45,12 @@ App.LoginWindowController = Em.Controller.extend
         window.localStorage.setItem 'access-token', token
         @fetchUser()
       , (jqxhr) =>
-        @fail(jqxhr)
+        if jqxhr.status == 400 && jqxhr.responseJSON?.error == 'invalid_grant'
+          @setProperties
+            invalidCredentials: true
+            loggingIn: false
+        else
+          @fail(jqxhr)
+
+    signUp: ->
+      shell.openExternal(config.signUpUrl)

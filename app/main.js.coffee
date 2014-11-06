@@ -14,15 +14,17 @@ app.on 'win-all-closed', ->
 app.on 'ready', ->
   ipc.on 'logged-in', (event, username) ->
     nitrous.loginWindow.close()
-    nitrous.mainWindow = initWindow 'main-window/main-window',
+    nitrous.mainWindow = win = initWindow 'main-window/main-window',
       width: 800
       height: 600
       'use-content-size': true
       'auto-hide-menu-bar': false
       data:
         username: username
-    nitrous.mainWindow.on 'closed', ->
+    win.on 'closed', ->
       nitrous.mainWindow = null
+    win.show()
+    win.focus()
 
   ipc.on 'logged-out', (event) ->
     nitrous.mainWindow.close()
@@ -35,14 +37,13 @@ initWindow = (js, options={}) ->
   win.loadUrl('file://' + __dirname + '/index.html')
   win.webContents.on 'did-finish-load', ->
     win.webContents.send 'load-js', js, options.data
-    win.show()
-    win.focus()
   win
 
 initLoginWindow = ->
   nitrous.loginWindow = initWindow 'login-window/login-window',
-    width: 300
-    height: 200
+    show: false
+    width: 400
+    height: 340
     'use-content-size': true
     'auto-hide-menu-bar': false
   nitrous.loginWindow.on 'closed', ->
