@@ -40,6 +40,8 @@ App.FileSync = klass = Em.Object.extend
     return if @get 'started'
     @set 'started', true
 
+    @expectedUnisonAbort = false
+
     syncPath = @get 'syncPath'
     container = @get 'container'
     slug = container.get 'slug'
@@ -56,14 +58,10 @@ App.FileSync = klass = Em.Object.extend
         watcher.on 'change', (change) =>
           @_log "detected local fs change at #{change}"
           @performSync()
-        watcher.on 'abruptExit', =>
-          @_abruptExitReceived()
         @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
         remoteWatcher.on 'change', (change) =>
           @_log "detected remote fs change at #{change}"
           @performSync()
-        remoteWatcher.on 'abruptExit', =>
-          @_abruptExitReceived()
         # perform initial sync
         @kickOffInitialSync()
         cb?()
@@ -78,6 +76,7 @@ App.FileSync = klass = Em.Object.extend
       remoteWatcher.stop()
       @set 'remoteWatcher', null
     if unison = @get 'unison'
+      @expectedUnisonAbort = true
       unison.abort()
       @set 'unison', null
     @set 'started', false
@@ -91,10 +90,6 @@ App.FileSync = klass = Em.Object.extend
       @get('watcher').start()
       @_log 'starting remote watcher...'
       @get('remoteWatcher').start()
-
-  _abruptExitReceived: ->
-    @stopWatcher()
-    window.alert 'Stopping file sync, one or more watchers exited unexpectedly.'
 
   _log: (firstMessage, others...) ->
     messages = ["[file-sync] #{@get('container.slug')}: #{firstMessage}"]

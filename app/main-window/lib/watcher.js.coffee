@@ -70,6 +70,7 @@ klass = class App.Watcher extends EventEmitter
       childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
 
     startedWatchers.push(this)
+    console.log "Starting watcher, remote:", @ssh != null
     @proc.stdout.on 'data', (data) => @_processOutput(data)
     @proc.stderr.on 'data', (data) => @_processOutput(data)
     @proc.on 'exit', (code) => @_processDidQuit(code)
@@ -77,6 +78,7 @@ klass = class App.Watcher extends EventEmitter
   stop: ->
     @expectingStop = true
     @_clearNotifyTimeout()
+    @_clearQuitRestarter()
     if @proc
       @proc.stdout.removeAllListeners()
       @proc.stderr.removeAllListeners()
@@ -93,19 +95,18 @@ klass = class App.Watcher extends EventEmitter
         @_notify(filePath)
     else if data.indexOf('inotify_add_watch') != -1
       window.alert 'Box has exceeded watch amount, please contact support.'
-      @stop()
-      @emit 'abruptExit'
 
   _processDidQuit: (code) ->
-    return if @expectingStop
-    @quitCount ||= 0
-    @quitCount += 1
-    if @quitCount <= 2
-      console.log 'Unexpected quit, restarting'
+    console.log 'Unexpected quit, restarting'
+    @quitRestarter = window.setTimeout(=>
+      @quitRestarter = null
       @start()
-    else
-      @emit 'abruptExit'
+    , 200)
 
+  _clearQuitRestarter: ->
+    if @quitRestarter
+      window.clearTimeout @quitRestarter
+      return
 
 klass.stopAll = ->
   knownWatchers = startedWatchers.slice 0
