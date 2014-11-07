@@ -19,7 +19,7 @@ startedWatchers = []
 klass = class App.Watcher extends EventEmitter
   constructor: (@path, options) ->
     options ?= {}
-    @ignore = options.ignore ? ['.unison', '.git', '.svn', '.hg', 'CVS', '.DS_Store', 'Thumbs.db', 'Desktop.ini']
+    @ignore = options.ignore ? ['.unison', '.git', '.svn', '.hg', 'CVS', '.DS_Store', 'Thumbs.db', 'Desktop.ini', 'tmp/sockets', 'tmp/pids', 'tmp/sessions', 'tmp/cache']
     @delay = options.delay ? 100
     @ssh = options.ssh ? false
     @notifyTimeout = null
