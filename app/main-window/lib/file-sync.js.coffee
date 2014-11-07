@@ -31,7 +31,7 @@ App.FileSync = klass = Em.Object.extend
   ).observes 'enabled', 'container.state', 'App.online', 'syncPath', 'container.sshUrl'
 
   showSyncFolder: ->
-    if App.platform.isMac
+    if App.platform.isMac || App.platform.isWindows
       shell.openExternal "file://#{@get 'syncPath'}"
     else
       shell.openItem @get('syncPath')

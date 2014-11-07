@@ -16,6 +16,7 @@ ul.host-list
                     if fileSyncSupported
                       label File Sync
                       = ui-switch enabled=fileSync.enabled
+                      button click='showSyncFolder fileSync' Open Folder
                     else
                       label File Sync Not Available
                     if sshAccessSupported
