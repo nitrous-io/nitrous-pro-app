@@ -8,3 +8,6 @@ App.MainWindowController = Em.Controller.extend
 
     openSSHShell: (container) ->
       App.SSHShell.create().startShell container
+
+    openPreview: (container) ->
+      App.Preview.previewContainer container

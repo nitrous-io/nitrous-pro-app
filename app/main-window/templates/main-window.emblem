@@ -21,3 +21,5 @@ ul.host-list
                       label File Sync Not Available
                     if sshAccessSupported
                       button click='openSSHShell App.selectedContainer' Shell
+                    if previewUrl
+                      button click='openPreview App.selectedContainer' Preview

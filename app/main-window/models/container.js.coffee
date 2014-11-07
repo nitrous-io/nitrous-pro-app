@@ -84,6 +84,20 @@ App.Container = klass = Em.Object.extend
     "ssh://#{sshUsername}@#{hostname}:#{sshPort}"
   ).property 'sshUsername', 'host.hostname', 'sshPort'
 
+  previewPort: (->
+    return null unless port = @get 'envVarHash.NITROUS_PREVIEW_PORT'
+    port = window.parseInt port
+    return null if isNaN(port)
+    port
+  ).property 'envVarHash.NITROUS_PREVIEW_PORT'
+
+  previewUrl: (->
+    hostname = @get 'host.hostname'
+    port = @get 'previewPort'
+    return unless hostname && port
+    "http://#{hostname}:#{port}"
+  ).property 'host.hostname', 'previewPort'
+
 klass.reopenClass
   fetch: ->
     containers = Em.ArrayProxy.create()

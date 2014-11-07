@@ -15,8 +15,8 @@ app.on 'ready', ->
   ipc.on 'logged-in', (event, username) ->
     nitrous.loginWindow.close()
     nitrous.mainWindow = win = initWindow 'main-window/main-window',
-      width: 400
-      height: 600
+      width: 500
+      height: 700
       'min-width': 400
       'min-height': 160
       'use-content-size': true
