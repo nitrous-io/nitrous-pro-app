@@ -36,7 +36,7 @@ App.Unison = klass = Em.Object.extend
   shouldRetryAfterUploadingPublicKey: false
 
   abort: ->
-    console.log "#{@get 'container.slug'}: aborting sync..."
+    @_log 'aborting sync...'
     if @get 'syncing'
       @set 'shouldAbort', true
     if schedule = @get 'retrySchedule'
@@ -51,7 +51,7 @@ App.Unison = klass = Em.Object.extend
 
   sync: (cb) ->
     if @get 'syncing'
-      console.log "#{@get 'container.slug'}: sync requested while syncing, will run sync again later"
+      @_log 'sync requested while syncing, will run sync again later'
       @set 'shouldSyncAgain', true
       return # don't invoke callback
 
@@ -119,7 +119,7 @@ App.Unison = klass = Em.Object.extend
           @set 'shouldIgnoreLocks', false
           args.push '-ignorelocks'
 
-        console.log "#{@get 'container.slug'}: syncing..."
+        @_log 'syncing...'
 
         proc = if App.platform.isWindows
           childProcess.spawn UNISON_BIN_PATH, args, options
@@ -143,7 +143,7 @@ App.Unison = klass = Em.Object.extend
 
   handleProcessOutput: (data) ->
     data = data.toString('utf8')
-    console.log "#{@get 'container.slug'}: #{data}"
+    @_log data
 
     if @get 'shouldAbort'
       return @set 'shouldAbort', false
@@ -168,13 +168,13 @@ App.Unison = klass = Em.Object.extend
     if data.indexOf('Uncaught exception Sys_blocked_io') != -1
       @set 'shouldRetryWithDelay', 200
     if data.indexOf('Permission denied (') != -1
-      console.log "#{@get 'container.slug'}: ssh permission denied"
+      @_log 'ssh permission denied'
       @set 'shouldRetryAfterUploadingPublicKey', true
     else if transferCount = data.match(/Synchronization complete at .+ \(([\d,]+) items? transferred/)?[1]
       @set 'transferCount', window.parseInt(transferCount.replace(/,/g, ''), 10)
 
   processDidExit: (code, cb) ->
-    console.log "#{@get 'container.slug'}: sync process exited with code #{code}"
+    @_log "sync process exited with code #{code}"
     @set 'process', null
     @set 'syncing', false
 
@@ -196,7 +196,7 @@ App.Unison = klass = Em.Object.extend
       return @scheduleRetry(cb, retryDelay)
 
     if transferCount = @get 'transferCount'
-      console.log "#{@get 'container.slug'}: #{transferCount} item#{if transferCount > 1 then 's' else ''} transferred"
+      @_log "#{transferCount} item#{if transferCount > 1 then 's' else ''} transferred"
 
     if @get 'shouldSyncAgain'
       @set 'shouldSyncAgain', false
@@ -208,18 +208,23 @@ App.Unison = klass = Em.Object.extend
     if @get('retrySchedule') == null
       @set 'retrySchedule', Em.run.later(=>
         @set 'retrySchedule', null
-        console.log "#{@get 'container.slug'}: retrying sync..."
+        @_log "retrying sync..."
         @sync(cb)
       , delay)
 
   uploadPublicKey: (cb) ->
     container = @get 'container'
     slug = container.get 'slug'
-    console.log "#{slug}: Uploading public key..."
+    @_log "Uploading public key..."
 
     sshKey = App.get('sshKey')
     sshKey.upload container, (err) =>
       cb?(err)
+
+  _log: (firstMessage, others...) ->
+    messages = ["[unison] #{@get('container.slug')}: #{firstMessage}"]
+    messages.concat others
+    console.log.apply console, messages
 
 klass.reopenClass
   killAll: (cb) ->
