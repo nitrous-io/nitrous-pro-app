@@ -10,9 +10,9 @@ form submit=login class={invalidCredentials:shake}
       i.spinner
       | Logging in...
   else
-    input.login-btn type='submit' value='Login' disabled=view.loginButtonDisabled
+    input.login-btn type='submit' value='Log In' disabled=view.loginButtonDisabled
 
   .links
     p
       | Don't have an account?&nbsp;
-      a href='#' click=signUp Sign Up
+      a href='#' click=signUp Sign up

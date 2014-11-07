@@ -45,6 +45,7 @@ App.MainWindowView = klass = Em.View.extend
           submenu: [
             { label: 'Close Window', accelerator: 'Command+W', selector: 'performClose:' }
             { type: 'separator' }
+            { label: "Logged in as #{App.get('username')}", enabled: false }
             { label: 'Log Out', click: -> App.trigger 'log-out' }
           ]
         }
@@ -58,12 +59,6 @@ App.MainWindowView = klass = Em.View.extend
             { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' }
             { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' }
             { label: 'Select All', accelerator: 'Command+A', selector: 'selectAll:' }
-          ]
-        }
-        {
-          label: 'View'
-          submenu: [
-            { label: 'Enter Full Screen', accelerator: 'Ctrl+Command+F', click: -> currentWindow.setFullScreen(true) }
           ]
         }
         {
@@ -85,11 +80,6 @@ App.MainWindowView = klass = Em.View.extend
             { label: '&Close Window', accelerator: 'Ctrl+W', click: -> currentWindow.close() }
             { type: 'separator' }
             { label: 'E&xit', accelerator: 'Alt+F4', click: -> app.quit() }
-          ]
-        }
-        {
-          label: '&View', submenu: [
-            { label: '&Enter Full Screen', click: -> currentWindow.setFullScreen(true) }
           ]
         }
       ]

@@ -1,8 +1,9 @@
 //= require ./roboto-font
+@import 'variables'
 
 html
-  background: #2a3239
-  color: #a6b3bd
+  background: $bgColor
+  color: $textColor
 
 html, body, #app
   width: 100%
@@ -13,9 +14,15 @@ body
 
 *
   box-sizing: border-box
+  user-select: none
+  cursor: default
 
   button[disabled=disabled], :disabled, .disabled
     cursor: not-allowed
+
+button, input, textarea, a
+  &:focus
+    outline: none
 
 i.spinner
   display: inline-block

@@ -23,7 +23,6 @@ App.mintty =
       '-o', 'StrictHostKeyChecking=no'
       '-o', 'PreferredAuthentications=publickey'
       '-o', 'LogLevel=FATAL'
-      '-c', 'blowfish-cbc'
       '-i', sshKeyFile
       '-p', port
       "#{user}@#{host}"

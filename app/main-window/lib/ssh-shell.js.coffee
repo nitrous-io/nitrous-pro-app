@@ -31,6 +31,7 @@ App.SSHShell = Em.Object.extend
       '-o', 'UserKnownHostsFile=/dev/null'       # ignore known hosts
       '-o', 'StrictHostKeyChecking=no'           # no host key checking
       '-o', 'PreferredAuthentications=publickey' # pub key authentication only
+      '-o', 'LogLevel=FATAL'
       '-p', @get('port')
       '-i', @get('privateKeyPath')
       "#{@get('sshUser')}@#{@get('hostname')}"
