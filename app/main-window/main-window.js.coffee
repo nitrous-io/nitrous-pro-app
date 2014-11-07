@@ -33,6 +33,13 @@ else if platform.isMac
 else
   path.join(homePath, '.nitrous')
 
+appPath = path.join(__dirname, '..')
+
+executablePath = if platform.isWindows
+    path.join process.execPath, '..'
+  else
+    path.join appPath, '..'
+
 window.MainWindow = klass = Em.Application.extend Em.Evented,
   rootElement: '#app'
 
@@ -52,6 +59,9 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   binPath: binPath
   dataPath: dataPath
   userDataPath: path.join(dataPath, username)
+
+  appPath: appPath
+  executablePath: executablePath
 
   killAll: (procName, cb) ->
     if platform.isWindows
@@ -73,6 +83,9 @@ fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 App.on 'app-did-load', ->
   App.set 'sshKey', sshKey = App.SSHKey.create()
   sshKey.load()
+
+  App.set 'updater', updater = App.Updater.create()
+  updater.startSchedule()
 
   # load main window route
   App.Router.map ->
