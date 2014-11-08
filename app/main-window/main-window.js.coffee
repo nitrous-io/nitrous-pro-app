@@ -1,7 +1,6 @@
 #= require_self
 #= require ./app
 
-os = require 'os'
 fs = require 'fs'
 path = require 'path'
 childProcess = require 'child_process'
@@ -9,9 +8,9 @@ ipc = require 'ipc'
 config = require './config'
 
 platform =
-  isWindows: os.type() == 'Windows_NT'
-  isMac: os.type() == 'Darwin'
-  isLinux: os.type() == 'Linux'
+  isWindows: process.platform == 'win32'
+  isMac: process.platform == 'darwin'
+  isLinux: process.platform == 'linux'
 
 username = DATA.username
 

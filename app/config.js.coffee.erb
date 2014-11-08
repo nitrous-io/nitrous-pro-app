@@ -20,6 +20,12 @@ resPath = if asar
 else
   __dirname
 
+appPath = switch process.platform
+  when 'darwin'
+    path.join(process.execPath, '..', '..', '..', '..', '..', '..')
+  else
+    path.join(process.execPath, '..')
+
 module.exports =
   host: <%= "'#{host}'" %>
   signUpUrl: <%= "'#{signup_url}'" %>
@@ -27,3 +33,4 @@ module.exports =
   debug: debug
   asar: asar
   resPath: resPath
+  appPath: appPath

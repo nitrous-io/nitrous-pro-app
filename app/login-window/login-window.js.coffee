@@ -1,12 +1,10 @@
 #= require_self
 #= require_tree .
 
-os = require 'os'
-
 platform =
-  isWindows: os.type() == 'Windows_NT'
-  isMac: os.type() == 'Darwin'
-  isLinux: os.type() == 'Linux'
+  isWindows: process.platform == 'win32'
+  isMac: process.platform == 'darwin'
+  isLinux: process.platform == 'linux'
 
 window.LoginWindow = Em.Application.extend
   rootElement: '#app'
