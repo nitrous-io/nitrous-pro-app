@@ -35,6 +35,9 @@ App.Unison = klass = Em.Object.extend
   shouldRetryWithDelay: null
   shouldRetryAfterUploadingPublicKey: false
 
+  onRetry: null
+  onRestored: null
+
   abort: ->
     @_log 'aborting sync...'
     if @get 'syncing'
@@ -160,6 +163,7 @@ App.Unison = klass = Em.Object.extend
         @set 'shouldRetryWithDelay', 200
       else if errorMessage.indexOf('lost connection with the server') != -1
         # determine if we need to correct an SSH issue
+        _log 'Lost connection'
         @set 'lastErrorMessage', 'Connection failed'
         @set 'shouldRetryWithDelay', 5000
       else
@@ -198,6 +202,10 @@ App.Unison = klass = Em.Object.extend
     if transferCount = @get 'transferCount'
       @_log "#{transferCount} item#{if transferCount > 1 then 's' else ''} transferred"
 
+    if @badState
+      @badState = false
+      @get('onRestored')?()
+
     if @get 'shouldSyncAgain'
       @set 'shouldSyncAgain', false
       @sync(cb)
@@ -205,6 +213,8 @@ App.Unison = klass = Em.Object.extend
       cb?()
 
   scheduleRetry: (cb, delay) ->
+    @badState = true
+    @get('onRetry')?()
     if @get('retrySchedule') == null
       @set 'retrySchedule', Em.run.later(=>
         @set 'retrySchedule', null

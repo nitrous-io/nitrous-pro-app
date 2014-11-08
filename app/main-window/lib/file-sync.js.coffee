@@ -13,6 +13,10 @@ App.FileSync = klass = Em.Object.extend
   enabled: false
   unison: null
 
+  remoteWatcherIssues: false
+  localWatcherIssues: false
+  unisonIssues: false
+
   init: ->
     @_super.apply this, arguments
     Em.run.next =>
@@ -29,6 +33,10 @@ App.FileSync = klass = Em.Object.extend
     else
       @stopWatcher()
   ).observes 'enabled', 'container.state', 'App.online', 'syncPath', 'container.sshUrl'
+
+  syncIssues: (->
+    @get('enabled') && (@get('remoteWatcherIssues') || @get('localWatcherIssues') || @get('unisonIssues'))
+  ).property 'unisonIssues', 'remoteWatcherIssues', 'localWatcherIssues', 'enabled'
 
   showSyncFolder: ->
     if App.platform.isMac || App.platform.isWindows
@@ -51,19 +59,23 @@ App.FileSync = klass = Em.Object.extend
       fs.mkdir syncPath, '0755', (err) =>
         return cb?(err) if err && err.code != 'EEXIST'
         # initialize watcher
-        @set 'unison', App.Unison.create(container: container, syncPath: syncPath)
+        @set 'unison', App.Unison.create(container: container, syncPath: syncPath, onRetry: =>
+          @_unisonRestarting()
+        , onRestored: =>
+          @_unisonRestored()
+        )
         @set 'watcher', watcher = new App.Watcher(syncPath)
         watcher.on 'change', (change) =>
           @_log "detected local fs change at #{change}"
           @performSync()
-        watcher.on 'abruptExit', =>
-          @_abruptExitReceived()
+        watcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
+        watcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
         @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
         remoteWatcher.on 'change', (change) =>
           @_log "detected remote fs change at #{change}"
           @performSync()
-        remoteWatcher.on 'abruptExit', =>
-          @_abruptExitReceived()
+        remoteWatcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
+        remoteWatcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
         # perform initial sync
         @kickOffInitialSync()
         cb?()
@@ -92,9 +104,25 @@ App.FileSync = klass = Em.Object.extend
       @_log 'starting remote watcher...'
       @get('remoteWatcher').start()
 
-  _abruptExitReceived: ->
-    @stopWatcher()
-    window.alert 'Stopping file sync, one or more watchers exited unexpectedly.'
+  _unisonRestarting: ->
+    @set('unisonIssues', true)
+
+  _unisonRestored: ->
+    @set('unisonIssues', false)
+
+  _watcherRestarting: (watcher) ->
+    if watcher == @get('remoteWatcher')
+      @set 'remoteWatcherIssues', true
+
+    if watcher == @get('watcher')
+      @set 'localWatcherIssues', true
+
+  _watcherRestored: (watcher) ->
+    if watcher == @get('remoteWatcher')
+      @set 'remoteWatcherIssues', false
+
+    if watcher == @get('watcher')
+      @set 'localWatcherIssues', false
 
   _log: (firstMessage, others...) ->
     messages = ["[file-sync] #{@get('container.slug')}: #{firstMessage}"]
