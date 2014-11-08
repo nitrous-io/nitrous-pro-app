@@ -1,12 +1,16 @@
-config = require './config'
-path   = require 'path'
-fs     = require 'fs'
-https  = require 'https'
-url    = require 'url'
+config       = require './config'
+path         = require 'path'
+fs           = require 'fs'
+https        = require 'https'
+url          = require 'url'
+childProcess = require 'child_process'
 
 UPDATE_CHECK_INTERVAL = 6 * 60 * 60 * 1000  # 6 hours
 CHECK_RETRY_LIMIT = 5
 CHECK_RETRY_WAIT = 5000
+
+UPDATE_SCRIPT_PATH = path.join(App.binPath,
+  "nitrous-update.#{if App.platform.isWindows then 'cmd' else 'sh'}")
 
 App.Updater = Em.Object.extend
 
@@ -55,6 +59,7 @@ App.Updater = Em.Object.extend
 
     unless platformDir && config.updateLocation && config.version
       @set 'checking', false
+      return
 
     updateCheckUrl = "#{config.updateLocation}/nitrous-pro-app/#{platformDir}/app.json"
     window.$.ajax(
@@ -104,14 +109,14 @@ App.Updater = Em.Object.extend
     return if @get 'updating'
     @set 'updating', true
 
-    @set 'dowloading', true
+    @set 'downloading', true
     @set 'downloadedBytes', 0
 
     updatesPath = path.join App.dataPath, "Updates"
     fs.mkdir updatesPath, =>
       fileName = path.basename @newUrl
-      downloadPath = path.join updatesPath, fileName
-      tempDownloadPath = downloadPath + ".downloading"
+      @downloadPath = path.join updatesPath, fileName
+      tempDownloadPath = @downloadPath + ".downloading"
 
       writeStream = fs.createWriteStream tempDownloadPath, encoding: 'binary'
 
@@ -127,9 +132,9 @@ App.Updater = Em.Object.extend
 
       request = https.request options, (res) =>
         contentLength = window.parseInt res.headers['content-length'], 10
-        console.log "Update: #{res.statusCode}, Length: #{contentLength} bytes"
+        @_log "#{res.statusCode}, Length: #{contentLength} bytes"
         if res.statusCode != 200 || contentLength != @newFileSize
-          console.log 'Update: Failed!'
+          @_log 'Failed!'
           request.abort()
           writeStream.end()
           @fail()
@@ -143,26 +148,61 @@ App.Updater = Em.Object.extend
 
         res.on 'end', =>
           writeStream.end()
-          fs.rename tempDownloadPath, downloadPath, =>
-            console.log 'Update: Download Finished'
+          fs.rename tempDownloadPath, @downloadPath, =>
+            @_log 'Download Finished'
             @set 'downloading', false
             @installUpdate()
 
       request.on 'error', (err) =>
         request.abort()
 
-        console.log "Update failed! #{err.message}"
+        @_log "Update failed! #{err.message}"
         writeStream.end()
         @fail()
 
       request.end()
 
   installUpdate: ->
-    if config.development
-      console.log "In development mode, update will not install"
+    if config.env == 'development'
+      @_log 'In development mode, update will not install'
       @set 'updating', false
       @set 'updateFailed', true
       return
+
+    appPath = App.appPath
+    installPath = path.join appPath, '..'
+
+    writeTestFilePath = path.join installPath, '.nitrous-desktop-install'
+    fs.writeFile writeTestFilePath, '', (err) =>
+      if App.platform.isMac && err
+        @_log 'Unable to write to install directory. Aborting.'
+        @set 'updateFailed', true
+        @set 'updating', false
+        return
+
+      fs.unlink(writeTestFilePath)
+
+      args = [
+        process.pid
+        appPath
+        @downloadPath
+      ]
+
+      options =
+        cwd: installPath
+        detached: true
+
+      if App.platform.isWindows
+        update_script_in_temp_path = path.join process.env.TEMP, 'nitrous-update.cmd'
+        fs.writeFileSync(update_script_in_temp_path, fs.readFileSync(UPDATE_SCRIPT_PATH))
+        args.unshift '/c', 'start', 'Updating Nitrous Desktop...', '/min', update_script_in_temp_path
+        childProcess.spawn 'cmd.exe', args, options
+      else
+        args.unshift UPDATE_SCRIPT_PATH
+        childProcess.spawn '/bin/bash', args, options
+
+      Em.run.next ->
+        App.quit()
 
   compareVersion: (a, b) ->
     [aMajor, aMinor, aPatch] = a.split '.'
@@ -170,3 +210,8 @@ App.Updater = Em.Object.extend
     aMajor.localeCompare(bMajor) ||
       aMinor.localeCompare(bMinor) ||
       aPatch.localeCompare(bPatch)
+
+  _log: (firstMessage, others...) ->
+    messages = ["[updater] #{firstMessage}"]
+    messages.concat others
+    console.log.apply console, messages

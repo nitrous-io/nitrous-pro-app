@@ -7,6 +7,9 @@ childProcess = require 'child_process'
 ipc = require 'ipc'
 config = require './config'
 
+remote = require 'remote'
+mainApp = remote.require 'app'
+
 platform =
   isWindows: process.platform == 'win32'
   isMac: process.platform == 'darwin'
@@ -33,13 +36,6 @@ else if platform.isMac
 else
   path.join(homePath, '.nitrous')
 
-appPath = path.join(__dirname, '..')
-
-executablePath = if platform.isWindows
-    path.join process.execPath, '..'
-  else
-    path.join appPath, '..'
-
 window.MainWindow = klass = Em.Application.extend Em.Evented,
   rootElement: '#app'
 
@@ -60,8 +56,10 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   dataPath: dataPath
   userDataPath: path.join(dataPath, username)
 
-  appPath: appPath
-  executablePath: executablePath
+  appPath: config.appPath
+
+  quit: ->
+    mainApp.quit()
 
   killAll: (procName, cb) ->
     if platform.isWindows
