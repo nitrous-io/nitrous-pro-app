@@ -1,7 +1,14 @@
 #!/bin/bash
 set -e
 
-atom_shell_ver=$1
+build_env=$1
+build_env=${build_env:='development'}
+
+atom_shell_ver=$2
 atom_shell_ver=${atom_shell_ver:='0.18.2'}
 
-atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app/Contents/MacOS/Atom ./build
+if [ $build_env == "production" ]; then
+  dist/darwin-x64/Nitrous.app/Contents/MacOS/Nitrous
+else
+  atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app/Contents/MacOS/Atom ./build/development
+fi

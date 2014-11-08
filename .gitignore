@@ -2,6 +2,8 @@
 *.nw
 .bundle/
 build/
+dist/
+atom-shell/
 Gemfile.lock
 tmp/
 npmdebug.log
@@ -21,9 +23,6 @@ rails/spec/tmp/*
 rails/coverage/
 rails/.env
 rails/public/index.html
-
-# atom-shell
-atom-shell/
 
 # OSX
 .DS_Store

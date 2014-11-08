@@ -1,6 +1,7 @@
 app = require 'app'
 ipc = require 'ipc'
 BrowserWindow = require 'browser-window'
+config = require './config'
 
 #require('crash-reporter').start()
 
@@ -35,8 +36,11 @@ app.on 'ready', ->
   initLoginWindow()
 
 initWindow = (js, options={}) ->
+  options['web-preferences'] =
+    'web-security': false
   win = new BrowserWindow(options)
-  win.loadUrl('file://' + __dirname + '/index.html')
+  protocol = if config.asar then 'asar:/' else 'file://'
+  win.loadUrl(protocol + __dirname + '/index.html')
   win.webContents.on 'did-finish-load', ->
     win.webContents.send 'load-js', js, options.data
   win

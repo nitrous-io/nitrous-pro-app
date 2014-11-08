@@ -2,6 +2,7 @@ remote = require 'remote'
 Menu = remote.require 'menu'
 app = remote.require 'app'
 currentWindow = remote.getCurrentWindow()
+config = require './config'
 
 App.MainWindowView = klass = Em.View.extend
   elementId: 'main-window-view'
@@ -10,13 +11,14 @@ App.MainWindowView = klass = Em.View.extend
   didInsertElement: ->
     @_super.apply this, arguments
     menuTemplate = @menuTemplate()
-    menuTemplate.push
-      label: 'Debug'
-      submenu: [
-        { label: 'Reload', accelerator: 'Command+R', click: -> currentWindow.restart() }
-        { type: 'separator' }
-        { label: 'Toggle Dev Tools', accelerator: 'Alt+Command+I', click: -> currentWindow.toggleDevTools() }
-      ]
+    if config.debug
+      menuTemplate.push
+        label: 'Debug'
+        submenu: [
+          { label: 'Reload', accelerator: 'Command+R', click: -> currentWindow.restart() }
+          { type: 'separator' }
+          { label: 'Toggle Dev Tools', accelerator: 'Alt+Command+I', click: -> currentWindow.toggleDevTools() }
+        ]
     menu = Menu.buildFromTemplate(menuTemplate)
     if App.platform.isMac
       Menu.setApplicationMenu(menu)

@@ -1,0 +1,29 @@
+<%
+  case ENV['RACK_ENV']
+  when 'production'
+    host = 'https://pro.nitrous.io'
+    signup_url = host + '/'
+  else
+    host = 'https://pro.n2ostaging.com'
+    signup_url = host + '/'
+  end
+%>
+
+path = require 'path'
+
+env = <%= "'#{ENV['RACK_ENV']}'" %>
+debug = env == 'development' || process.env.DEBUG == '1'
+
+asar = __dirname.match(/\.asar$/)?
+resPath = if asar
+  path.join(__dirname, '..')
+else
+  __dirname
+
+module.exports =
+  host: <%= "'#{host}'" %>
+  signUpUrl: <%= "'#{signup_url}'" %>
+  env: env
+  debug: debug
+  asar: asar
+  resPath: resPath
