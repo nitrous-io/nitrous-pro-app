@@ -9,7 +9,7 @@ root.nitrous =
   loginWindow: null
   mainWindow: null
 
-app.on 'win-all-closed', ->
+app.on 'window-all-closed', ->
   app.quit()
 
 app.on 'ready', ->
