@@ -63,6 +63,15 @@ if [ $build_env == "production" ]; then
   rm -f "$app_path"/atom.exe
   cp "$asar_path" "$resources_path"
   echo "...Done!"
+
+  echo "--> Building Linux Package..."
+  mkdir -p dist/linux-x64
+  app_path='dist/linux-x64/Nitrous'
+  resources_path="$app_path"/resources
+  cp -a atom-shell/"$atom_shell_ver"/linux-x64 "$app_path"
+  mv "$app_path"/atom "$app_path"/nitrous
+  cp "$asar_path" "$resources_path"
+  echo "...Done!"
 else
   cp -a bin "$BUILD_DIR"
 fi
