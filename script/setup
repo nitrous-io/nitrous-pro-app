@@ -2,7 +2,7 @@
 set -e
 
 atom_shell_ver=$1
-atom_shell_ver=${atom_shell_ver:='0.18.2'}
+atom_shell_ver=${atom_shell_ver:='0.19.1'}
 
 mkdir -p atom-shell
 cd atom-shell
@@ -11,9 +11,15 @@ for arch in darwin-x64 win32-ia32; do
   filename='atom-shell-v'"$atom_shell_ver"'-'"$arch"'.zip'
   dir="$atom_shell_ver"/"$arch"
   mkdir -p "$atom_shell_ver"
-  wget 'https://github.com/atom/atom-shell/releases/download/v'"$atom_shell_ver"'/'"$filename" -O $filename
+  wget 'https://github.com/atom/atom-shell/releases/download/v'"$atom_shell_ver"'/'"$filename" -O "$filename"
   unzip -o $filename -d $dir
 done
+
+filename='nitrous-exe-atom-v'"$atom_shell_ver"'.zip'
+wget 'https://nitrous-atom-shell.s3.amazonaws.com/'"$filename" -O "$filename"
+unzip -o $filename -d "$atom_shell_ver"/win32-ia32
+chmod +x "$atom_shell_ver"/win32-ia32/nitrous.exe
+
 cd ..
 
 npm -g install coffee-script watchy asar

@@ -1,5 +1,5 @@
 ENV=development
-ATOM_SHELL_VERSION=0.18.2
+ATOM_SHELL_VERSION=0.19.1
 
 all: build
 

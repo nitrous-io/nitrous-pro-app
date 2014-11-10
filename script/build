@@ -26,18 +26,43 @@ rm -f "$BUILD_DIR"/manifest-*.json
 
 if [ $build_env == "production" ]; then
   rm -rf dist
+  mkdir -p dist
+
+  asar_path=dist/app.asar
+  asar pack "$BUILD_DIR" "$asar_path"
+
+  echo "--> Building OS X Package..."
   mkdir -p dist/darwin-x64
   cp -a atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app dist/darwin-x64/Nitrous.app
-  contents_path="dist/darwin-x64/Nitrous.app/Contents"
+  app_path="dist/darwin-x64/Nitrous.app"
+  contents_path="$app_path"/Contents
   resources_path=$contents_path/Resources
   rm -f "$contents_path"/Info.plist
   mv "$contents_path"/MacOS/Atom "$contents_path"/MacOS/Nitrous
   rm -f "$resources_path"/atom.icns
   cp resources/icon.icns "$resources_path"/atom.icns
   cp ./Info.plist "$contents_path"
-  asar pack "$BUILD_DIR" "$resources_path"/app.asar
+  cp "$asar_path" "$resources_path"
   mkdir -p "$resources_path"/bin
   cp -a bin/osx "$resources_path"/bin
+
+  # code sign
+  sig='4A935863DFF7D879E4487FC3FE1AF30EA03FAF00'
+  codesign -f -v -s "$sig" "$resources_path"/app.asar
+  for f in nitrous-ssh-launcher nitrous-unison nitrous-unison.sh nitrous-watcher; do
+    codesign -f -v -s "$sig" "$resources_path"/bin/osx/"$f"
+  done
+  codesign -f --deep -v -s "$sig" $app_path
+  echo "...Done!"
+
+  echo "--> Building Windows Package..."
+  mkdir -p dist/win32-ia32
+  app_path='dist/win32-ia32/Nitrous'
+  resources_path="$app_path"/resources
+  cp -a atom-shell/"$atom_shell_ver"/win32-ia32 "$app_path"
+  rm -f "$app_path"/atom.exe
+  cp "$asar_path" "$resources_path"
+  echo "...Done!"
 else
   cp -a bin "$BUILD_DIR"
 fi
