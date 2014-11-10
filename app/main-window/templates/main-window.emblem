@@ -1,25 +1,31 @@
-ul.host-list
-  each host in App.hosts
-    li
-      h3.host-name
-        = host.displayName
-      ul.container-list
-        each container in host.containers
-          li class={container.selected:selected}
-            h4.container-name click='selectContainer container'
-              .state-orb class={container.state}
-              = container.displayName
-            .container-details
-              .content
-                with App.selectedContainer
-                  if configLoaded
-                    if fileSyncSupported
-                      label File Sync
-                      = ui-switch enabled=fileSync.enabled
-                      button click='showSyncFolder fileSync' Open Folder
-                    else
-                      label File Sync Not Available
-                    if sshAccessSupported
-                      button click='openSSHShell App.selectedContainer' Shell
-                    if previewUrl
-                      button click='openPreview App.selectedContainer' Preview
+if App.hosts
+  ul.host-list
+    each host in App.hosts
+      li
+        h3.host-name
+          = host.displayName
+        ul.container-list
+          each container in host.containers
+            li class={container.selected:selected}
+              h4.container-name click='selectContainer container'
+                .state-orb class={container.state}
+                = container.displayName
+              .container-details
+                .content
+                  with App.selectedContainer
+                    if configLoaded
+                      if fileSyncSupported
+                        label File Sync
+                        = ui-switch enabled=fileSync.enabled
+                        button click='showSyncFolder fileSync' Open Folder
+                      else
+                        label File Sync Not Available
+                      if sshAccessSupported
+                        button click='openSSHShell App.selectedContainer' Shell
+                      if previewUrl
+                        button click='openPreview App.selectedContainer' Preview
+else
+  .containing
+    .notice
+      p You don't have any applications
+      button click='createHost' Create a new application

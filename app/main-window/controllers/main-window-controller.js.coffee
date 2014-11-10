@@ -11,3 +11,6 @@ App.MainWindowController = Em.Controller.extend
 
     openPreview: (container) ->
       App.Preview.previewContainer container
+
+    createHost: ->
+      require('shell').openExternal require('./config').host
