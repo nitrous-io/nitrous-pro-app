@@ -24,11 +24,22 @@ App.Updater = Em.Object.extend
 
   downloadedBytes: 0
 
+  newUrl: null
+  newFileSize: null
+  newVersion: null
+
   checkRetries: 0
 
   updateInfo: (->
     @get('checking') || @get('updating') || @get('downloading') || @get('installing')
   ).property 'checking', 'updating', 'downloading', 'installing'
+
+  progress: (->
+    bytes = @get 'downloadedBytes'
+    fSize = @get 'newFileSize'
+    return null unless bytes && fSize
+    (Math.round((bytes / fSize * 100.0) * 10) / 10).toFixed(1)
+  ).property 'downloadedBytes', 'newFileSize'
 
   startSchedule: ->
     @checkForUpdates()
@@ -87,15 +98,15 @@ App.Updater = Em.Object.extend
   processUpdate: (json) ->
     if @compareVersion(json.version, config.version)
       if json.url && json.fileSize
-        @newUrl = json.url
-        @newFileSize = json.fileSize
-        @newVersion = json.version
+        @set('newUrl', json.url)
+        @set('newFileSize', json.fileSize)
+        @set('newVersion', json.version)
         @promptUser()
       else
         @set 'updateFailed', true
 
   promptUser: ->
-    message = "A new version (#{@newVersion}) is available, would you like to update?"
+    message = "A new version (#{@get('newVersion')}) is available, would you like to update?"
     willUpdate = window.confirm message
     if willUpdate
       @downloadUpdate()
@@ -112,15 +123,17 @@ App.Updater = Em.Object.extend
     @set 'downloading', true
     @set 'downloadedBytes', 0
 
+    newUrl = @get 'newUrl'
+
     updatesPath = path.join App.dataPath, "Updates"
     fs.mkdir updatesPath, =>
-      fileName = path.basename @newUrl
+      fileName = path.basename newUrl
       @downloadPath = path.join updatesPath, fileName
       tempDownloadPath = @downloadPath + ".downloading"
 
       writeStream = fs.createWriteStream tempDownloadPath, encoding: 'binary'
 
-      parsed = url.parse @newUrl
+      parsed = url.parse newUrl
       options =
         method: 'GET'
         hostname: parsed.hostname
@@ -133,7 +146,7 @@ App.Updater = Em.Object.extend
       request = https.request options, (res) =>
         contentLength = window.parseInt res.headers['content-length'], 10
         @_log "#{res.statusCode}, Length: #{contentLength} bytes"
-        if res.statusCode != 200 || contentLength != @newFileSize
+        if res.statusCode != 200 || contentLength != @get('newFileSize')
           @_log 'Failed!'
           request.abort()
           writeStream.end()

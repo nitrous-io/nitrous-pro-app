@@ -4,6 +4,11 @@ if App.updater.updateInfo
       | Checking for update
     if App.updater.updating
       | Updating
+      if App.updater.downloading
+        if App.updater.progress
+          '
+          = App.updater.progress
+          | %
 
 if App.hosts
   ul.host-list
