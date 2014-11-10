@@ -70,6 +70,7 @@ if [ $build_env == "production" ]; then
   resources_path="$app_path"/resources
   cp -a atom-shell/"$atom_shell_ver"/linux-x64 "$app_path"
   mv "$app_path"/atom "$app_path"/nitrous
+  chmod +x "$app_path"/nitrous
   cp "$asar_path" "$resources_path"
   echo "...Done!"
 else
