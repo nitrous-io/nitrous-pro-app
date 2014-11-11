@@ -355,6 +355,9 @@ terminal_gnome()
     term_exec=`gconftool-2 --get ${term_exec_key}`
     term_exec_arg=`gconftool-2 --get ${term_exec_arg_key}`
 
+    if [ -z "$term_exec" ]; then term_exec="gnome-terminal"; fi
+    if [ -z "$term_exec_arg" ]; then term_exec_arg="-x"; fi
+
     terminal_exec=`which $term_exec 2>/dev/null`
 
     if [ -x "$terminal_exec" ]; then
