@@ -42,6 +42,7 @@ App.Updater = Em.Object.extend
   ).property 'downloadedBytes', 'newFileSize'
 
   startSchedule: ->
+    @_log "Started. Current version: " + config.version
     @checkForUpdates()
     @schedule = window.setInterval(=>
       @checkForUpdates()

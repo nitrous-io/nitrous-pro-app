@@ -1,6 +1,8 @@
 #= require_self
 #= require_tree .
 
+config = require './config'
+
 platform =
   isWindows: process.platform == 'win32'
   isMac: process.platform == 'darwin'
@@ -13,6 +15,8 @@ window.LoginWindow = Em.Application.extend
   offline: Em.computed.not 'online'
 
   platform: platform
+
+  curVersion: config.version
 
 window.App = LoginWindow.create()
 
