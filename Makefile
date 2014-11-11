@@ -8,6 +8,7 @@ setup:
 
 clean:
 	rm -rf build/
+	rm -rf rails/tmp
 
 build:
 	script/build $(ENV) $(ATOM_SHELL_VERSION)

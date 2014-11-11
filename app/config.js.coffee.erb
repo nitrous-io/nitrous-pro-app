@@ -7,6 +7,8 @@
     host = 'https://pro.n2ostaging.com'
     signup_url = host + '/'
   end
+
+  puts "App VERSION: #{File.read(File.join(File.dirname(__FILE__), "..", "VERSION"))}"
 %>
 
 path = require 'path'
@@ -35,4 +37,4 @@ module.exports =
   resPath: resPath
   appPath: appPath
   updateLocation: "http://callumjcom.s3.amazonaws.com"
-  version: "0.1"
+  version: "<%= File.read(File.join(File.dirname(__FILE__), "..", "VERSION")) %>"

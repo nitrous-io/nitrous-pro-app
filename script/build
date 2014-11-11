@@ -12,6 +12,7 @@ BUILD_DIR=./build/"$build_env"
 cd rails
 rm -f public/index.html
 rm -rf public/assets
+rm -rf tmp/
 mkdir -p public/assets
 RACK_ENV="$build_env" bundle exec rake assets:clean assets:precompile
 bundle exec rails runner -e "$build_env" 'puts ActionView::Base.new(Rails::Application::Configuration.new(Rails.root).paths["app/views"]).render(template: "web_app/index")' > public/index.html
@@ -25,6 +26,8 @@ cp -a images "$BUILD_DIR"
 rm -f "$BUILD_DIR"/manifest-*.json
 
 if [ $build_env == "production" ]; then
+  version=`cat ./VERSION`
+  echo "Version: '$version'"
   rm -rf dist
   mkdir -p dist
 
@@ -33,6 +36,7 @@ if [ $build_env == "production" ]; then
 
   echo "--> Building OS X Package..."
   mkdir -p dist/darwin-x64
+  echo $version > dist/darwin-x64/VERSION
   cp -a atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app dist/darwin-x64/Nitrous.app
   app_path="dist/darwin-x64/Nitrous.app"
   contents_path="$app_path"/Contents
@@ -57,6 +61,7 @@ if [ $build_env == "production" ]; then
 
   echo "--> Building Windows Package..."
   mkdir -p dist/win32-ia32
+  echo $version > dist/win32-ia32/VERSION
   app_path='dist/win32-ia32/Nitrous'
   resources_path="$app_path"/resources
   cp -a atom-shell/"$atom_shell_ver"/win32-ia32 "$app_path"
@@ -68,6 +73,7 @@ if [ $build_env == "production" ]; then
 
   echo "--> Building Linux Package..."
   mkdir -p dist/linux-x64
+  echo $version > dist/linux-x64/VERSION
   app_path='dist/linux-x64/Nitrous'
   resources_path="$app_path"/resources
   cp -a atom-shell/"$atom_shell_ver"/linux-x64 "$app_path"
