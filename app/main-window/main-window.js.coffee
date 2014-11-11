@@ -36,6 +36,8 @@ else if platform.isMac
 else
   path.join(homePath, '.nitrous')
 
+usersDataPath = path.join(dataPath, "Users")
+
 window.MainWindow = klass = Em.Application.extend Em.Evented,
   rootElement: '#app'
 
@@ -54,7 +56,8 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   homePath: homePath
   binPath: binPath
   dataPath: dataPath
-  userDataPath: path.join(dataPath, username)
+  usersDataPath: usersDataPath
+  userDataPath: path.join(usersDataPath, username)
 
   appPath: config.appPath
 
@@ -76,6 +79,7 @@ $(window).on 'offline', ->
   App.set 'online', false
 
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
+fs.mkdirSync(App.usersDataPath, '0755') unless fs.existsSync(App.usersDataPath)
 fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 
 App.on 'app-did-load', ->
