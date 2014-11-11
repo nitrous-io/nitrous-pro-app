@@ -1,7 +1,10 @@
 path = require 'path'
 childProcess = require 'child_process'
 
-LAUNCH_BIN_PATH = path.join(App.binPath, "nitrous-ssh-launcher")
+LAUNCH_BIN_PATH = if App.platform.isLinux
+  path.join(App.binPath, "xdg-terminal")
+else
+  path.join(App.binPath, "nitrous-ssh-launcher")
 SSH_BIN_PATH = if App.platform.isWindows
   path.join(App.binPath, 'nitrous-ssh.exe')
 else
@@ -42,7 +45,7 @@ App.SSHShell = Em.Object.extend
     @proc = childProcess.spawn SSH_BIN_PATH, testSSHArgs, detached: false
     @waitTimeout = window.setTimeout(=>
       @_testTimedOut()
-    , 3000)
+    , 60000)
     @proc.stdout.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
     @proc.stderr.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
 
@@ -59,9 +62,16 @@ App.SSHShell = Em.Object.extend
       else
         sshArgs.unshift SSH_BIN_PATH
         identityLoc = sshArgs.indexOf('-i') + 1
-        sshArgs[identityLoc] = "\"#{sshArgs[identityLoc]}\""
 
-        console.log "Launching:", LAUNCH_BIN_PATH, sshArgs.join(" ")
+        if App.platform.isLinux
+          sshArgs[identityLoc] = sshArgs[identityLoc].replace " ", "\\ "
+        else
+          sshArgs[identityLoc] = "\"#{sshArgs[identityLoc]}\""
+
+        if App.platform.isLinux
+          sshArgs = [sshArgs.join(" ")]
+
+        console.log LAUNCH_BIN_PATH + " " + sshArgs.join " "
         childProcess.spawn LAUNCH_BIN_PATH, sshArgs, detached: false
     else if decoded.indexOf("Permission denied") != -1
       @_cancelTimeout()

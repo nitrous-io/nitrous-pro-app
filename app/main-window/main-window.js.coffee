@@ -21,8 +21,10 @@ else
 
 binPath = if platform.isWindows
   path.join(config.resPath, 'bin', 'win')
-else
+else if platform.isMac
   path.join(config.resPath, 'bin', 'osx')
+else
+  path.join(config.resPath, 'bin', 'linux')
 
 dataPath = if platform.isWindows
   path.join(process.env.APPDATA, 'Nitrous')
