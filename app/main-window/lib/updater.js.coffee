@@ -72,7 +72,7 @@ App.Updater = Em.Object.extend
       @set 'checking', false
       return
 
-    updateCheckUrl = "#{config.updateLocation}/nitrous-pro-app/#{platformDir}/app.json"
+    updateCheckUrl = "#{config.updateLocation}/#{platformDir}/app.json"
     window.$.ajax(
       type: 'GET'
       cache: false
@@ -104,6 +104,8 @@ App.Updater = Em.Object.extend
         @promptUser()
       else
         @set 'updateFailed', true
+    else
+      @_log "Server version: #{json.version}"
 
   promptUser: ->
     message = "A new version (#{@get('newVersion')}) is available, would you like to update?"
@@ -225,6 +227,7 @@ App.Updater = Em.Object.extend
       aPatch.localeCompare(bPatch)
 
   _log: (firstMessage, others...) ->
+    return unless config.debug
     messages = ["[updater] #{firstMessage}"]
     messages.concat others
     console.log.apply console, messages
