@@ -53,7 +53,7 @@ if [ $build_env == "production" ]; then
   # code sign
   sig='4A935863DFF7D879E4487FC3FE1AF30EA03FAF00'
   codesign -f -v -s "$sig" "$resources_path"/app.asar
-  for f in nitrous-ssh-launcher nitrous-unison nitrous-unison.sh nitrous-watcher; do
+  for f in nitrous-ssh-launcher nitrous-unison nitrous-unison.sh nitrous-watcher nitrous-update.sh; do
     codesign -f -v -s "$sig" "$resources_path"/bin/osx/"$f"
   done
   codesign -f --deep -v -s "$sig" $app_path

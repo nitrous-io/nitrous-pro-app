@@ -6,8 +6,10 @@ for target in ./dist/*; do
     echo "$target[$version]"
     cd $target
     if [ -d "Nitrous.app" ]; then
-      zip -r "Nitrous.app-$version.zip" Nitrous.app
+      rm -rf Nitrous.app-$version.zip
+      zip -r -y "Nitrous.app-$version.zip" Nitrous.app
     else
+      rm -rf "nitrous-$version.zip"
       zip -r "nitrous-$version.zip" Nitrous
     fi
     cd ../../
