@@ -21,7 +21,7 @@ App.Host = klass = Em.Object.extend
   ).property 'name', 'slug'
 
 klass.reopenClass
-  fetch: ->
+  fetch: (cb) ->
     hosts = Em.ArrayProxy.create()
     ajax(
       type: 'GET'
@@ -38,6 +38,7 @@ klass.reopenClass
             freighterdPort: h.freighterd_port
             proxyHostname: h.proxy_hostname
             ipAddress: h.ip_address
+      cb?(hosts)
     , (jqxhr) ->
       json = jqxhr.responseJSON
       window.alert(json?.error_description || json?.error || "Failed to load hosts (#{jqxhr.statusText})")

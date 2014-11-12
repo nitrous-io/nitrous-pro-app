@@ -70,13 +70,25 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
     else
       childProcess.execFile '/usr/bin/killall', ['-9', procName], {}, cb
 
+  loadEventsSocket: ->
+    @unloadEventsSocket()
+    App.set 'eventsSocket', eventsSocket = App.EventsSocket.create()
+    eventsSocket.connect()
+
+  unloadEventsSocket: ->
+    return unless App.get 'eventsSocket'
+    App.get('eventsSocket').disconnect()
+    App.set('eventsSocket', null)
+
 window.App = klass.create()
 
 $(window).on 'online', ->
   App.set 'online', true
+  App.loadEventsSocket()
 
 $(window).on 'offline', ->
   App.set 'online', false
+  App.unloadEventsSocket()
 
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
 fs.mkdirSync(App.usersDataPath, '0755') unless fs.existsSync(App.usersDataPath)
@@ -93,11 +105,14 @@ App.on 'app-did-load', ->
   App.Router.map ->
     @route 'main-window', path: '/'
 
+  App.loadEventsSocket()
+
 App.on 'log-out', ->
   window.localStorage.removeItem 'access-token'
   App.get('sshKey')?.deleteKeys()
   App.Watcher.stopAll()
   ipc.send 'logged-out'
+  App.unloadEventsSocket()
 
 window.onbeforeunload = ->
   App.Watcher.stopAll()
