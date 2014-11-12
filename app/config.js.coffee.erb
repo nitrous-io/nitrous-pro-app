@@ -29,7 +29,7 @@ appPath = switch process.platform
     path.join(process.execPath, '..')
 
 module.exports =
-  host: <%= "'#{host}'" %>
+  host: debug && process.env.DEBUG_HOST || <%= "'#{host}'" %>
   signUpUrl: <%= "'#{signup_url}'" %>
   env: env
   debug: debug

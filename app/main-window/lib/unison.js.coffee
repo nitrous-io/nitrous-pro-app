@@ -163,7 +163,7 @@ App.Unison = klass = Em.Object.extend
         @set 'shouldRetryWithDelay', 200
       else if errorMessage.indexOf('lost connection with the server') != -1
         # determine if we need to correct an SSH issue
-        _log 'Lost connection'
+        @_log 'Lost connection'
         @set 'lastErrorMessage', 'Connection failed'
         @set 'shouldRetryWithDelay', 5000
       else
