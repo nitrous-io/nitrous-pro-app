@@ -99,7 +99,7 @@ App.Container = klass = Em.Object.extend
   ).property 'host.hostname', 'previewPort'
 
 klass.reopenClass
-  fetch: ->
+  fetch: (cb) ->
     containers = Em.ArrayProxy.create()
     ajax(
       type: 'GET'
@@ -117,6 +117,7 @@ klass.reopenClass
             hostId: c.host_id
           container.get 'config'
           container
+      cb?(containers)
     , (jqxhr) ->
       json = jqxhr.responseJSON
       window.alert(json?.error_description || json?.error || "Failed to load containers (#{jqxhr.statusText})")
