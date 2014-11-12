@@ -25,7 +25,7 @@ cd ..
 npm -g install coffee-script watchy asar
 
 if [[ `uname` == "Darwin" ]]; then
-  brew install s3cmd
+  brew install --devel s3cmd
 else
   apt-get install s3cmd
 fi
