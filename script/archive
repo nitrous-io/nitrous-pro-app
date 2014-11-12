@@ -1,0 +1,15 @@
+#!/bin/bash
+
+for target in ./dist/*; do
+  if [ -d "${target}" ]; then
+    version=`cat ${target}/VERSION`
+    echo "$target[$version]"
+    cd $target
+    if [ -d "Nitrous.app" ]; then
+      zip -r "Nitrous.app-$version.zip" Nitrous.app
+    else
+      zip -r "nitrous-$version.zip" Nitrous
+    fi
+    cd ../../
+  fi
+done

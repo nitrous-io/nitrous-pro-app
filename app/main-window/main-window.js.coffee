@@ -7,6 +7,9 @@ childProcess = require 'child_process'
 ipc = require 'ipc'
 config = require './config'
 
+remote = require 'remote'
+mainApp = remote.require 'app'
+
 platform =
   isWindows: process.platform == 'win32'
   isMac: process.platform == 'darwin'
@@ -33,6 +36,8 @@ else if platform.isMac
 else
   path.join(homePath, '.nitrous')
 
+usersDataPath = path.join(dataPath, "Users")
+
 window.MainWindow = klass = Em.Application.extend Em.Evented,
   rootElement: '#app'
 
@@ -51,7 +56,13 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   homePath: homePath
   binPath: binPath
   dataPath: dataPath
-  userDataPath: path.join(dataPath, username)
+  usersDataPath: usersDataPath
+  userDataPath: path.join(usersDataPath, username)
+
+  appPath: config.appPath
+
+  quit: ->
+    mainApp.quit()
 
   killAll: (procName, cb) ->
     if platform.isWindows
@@ -68,11 +79,15 @@ $(window).on 'offline', ->
   App.set 'online', false
 
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
+fs.mkdirSync(App.usersDataPath, '0755') unless fs.existsSync(App.usersDataPath)
 fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 
 App.on 'app-did-load', ->
   App.set 'sshKey', sshKey = App.SSHKey.create()
   sshKey.load()
+
+  App.set 'updater', updater = App.Updater.create()
+  updater.startSchedule()
 
   # load main window route
   App.Router.map ->

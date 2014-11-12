@@ -1,0 +1,62 @@
+#!/bin/bash
+
+BUCKET_NAME="nitrous-pro-app"
+S3_URL="https://nitrous-pro-app.s3.amazonaws.com"
+thisOS=`uname`
+
+s3cmdBase=""
+if [[ -z "$AWS_ACCESS_KEY" && -z "$AWS_SECRET_KEY" ]]; then
+  s3cmdBase="s3cmd"
+else
+  s3cmdBase="s3cmd --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_SECRET_KEY"
+fi
+
+for target in ./dist/*; do
+  distType=""
+  if [[ $target == *darwin-x64* ]]; then
+    distType="mac"
+  elif [[ $target == *linux-x64* ]]; then
+    distType="linux"
+  elif [[ $target == *win32-ia32* ]]; then
+    distType="windows"
+  fi
+
+  if [[ $distType != "" ]]; then
+    cd $target
+    foundFile=""
+    for file in *; do
+      if [[ $file =~ ^(Nitrous|nitrous).+\.zip ]]; then
+        foundFile=$file
+      fi
+    done
+    if [[ $foundFile =~ -(.+)\.zip ]]; then
+      thisVersion="${BASH_REMATCH[1]}"
+      jsonUrl="$S3_URL/$distType/app.json"
+      jsonContents=`curl $jsonUrl 2>/dev/null`
+      expected="\"version\": \"$thisVersion\""
+      if ! [ "${jsonContents/$expected}" = "$jsonContents" ] ; then
+        echo $jsonContents
+        echo "[$distType] Version $thisVersion already exists!"
+      else
+        echo "[$distType] Version $thisVersion does not exist, will upload."
+        finalUrl="$S3_URL/$distType/$foundFile"
+        fileSize=""
+        if [[ $thisOS == "Darwin" ]]; then
+          fileSize=$(stat -f%z "$foundFile")
+        else
+          fileSize=$(stat -c%s "$foundFile")
+        fi
+        appJson="{ \"version\": \"$thisVersion\", \"url\": \"$finalUrl\", \"fileSize\": $fileSize }"
+        $s3cmdBase put -P $foundFile s3://$BUCKET_NAME/$distType/$foundFile
+        tmpLoc="/tmp/$foundFile.json"
+        echo $appJson > $tmpLoc
+        echo $s3cmdBase
+        $s3cmdBase put -m "application/json" -P $tmpLoc s3://$BUCKET_NAME/$distType/app.json
+        rm -rf $tmpLoc
+      fi
+    else
+      echo "No version found"
+    fi
+    cd ../../
+  fi
+done

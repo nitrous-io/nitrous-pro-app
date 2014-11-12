@@ -8,6 +8,7 @@ setup:
 
 clean:
 	rm -rf build/
+	rm -rf rails/tmp
 
 build:
 	script/build $(ENV) $(ATOM_SHELL_VERSION)
@@ -26,6 +27,12 @@ run-dev:
 
 run-prod:
 	script/run production $(ATOM_SHELL_VERSION)
+
+archive: build-prod
+	script/archive
+
+upload: archive
+	script/upload
 
 watch: build-dev
 	watchy -w 'app,css,images,index.html.slim' -- make build-dev

@@ -16,3 +16,7 @@ form submit=login class={invalidCredentials:shake}
     p
       | Don't have an account?&nbsp;
       a href='#' click=signUp Sign up
+
+.version_info
+  ' Version
+  = App.curVersion

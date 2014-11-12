@@ -1,3 +1,15 @@
+if App.updater.updateInfo
+  .update-info
+    if App.updater.checking
+      | Checking for update
+    if App.updater.updating
+      | Updating
+      if App.updater.downloading
+        if App.updater.progress
+          '
+          = App.updater.progress
+          | %
+
 if App.hosts
   ul.host-list
     each host in App.hosts
