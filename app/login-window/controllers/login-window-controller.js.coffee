@@ -20,8 +20,8 @@ App.LoginWindowController = Em.Controller.extend
       type: 'GET'
       url: '/api/v0/user'
     ).then (res) ->
-      username = res.user.username
-      ipc.send 'logged-in', username
+      user = res.user
+      ipc.send 'logged-in', user
     , (jqxhr) =>
       if jqxhr.status == 401
         window.localStorage.removeItem 'access-token'

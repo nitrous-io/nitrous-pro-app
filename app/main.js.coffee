@@ -3,17 +3,27 @@ ipc = require 'ipc'
 BrowserWindow = require 'browser-window'
 config = require './config'
 
+MixpanelWrapper = require './lib/mixpanel-wrapper'
+
 #require('crash-reporter').start()
 
 root.nitrous =
   loginWindow: null
   mainWindow: null
+  mixPanel: null
 
 app.on 'window-all-closed', ->
+  nitrous.mixPanel.track 'Quit'
   app.quit()
 
 app.on 'ready', ->
-  ipc.on 'logged-in', (event, username) ->
+  initMixpanel()
+
+  ipc.on 'logged-in', (event, user) ->
+    nitrous.mixPanel.setUser user
+    nitrous.mixPanel.track 'Logged In'
+
+    username = user.username
     nitrous.loginWindow.close()
     nitrous.mainWindow = win = initWindow 'main-window/main-window',
       width: 500
@@ -30,14 +40,23 @@ app.on 'ready', ->
     win.focus()
 
   ipc.on 'logged-out', (event) ->
+    nitrous.mixPanel.track 'Logged Out'
     nitrous.mainWindow.close()
     initLoginWindow()
 
+  ipc.on 'track', (event, arg)->
+    nitrous.mixPanel.track arg.eventName, arg.data
+
   initLoginWindow()
+
+initMixpanel = ->
+  nitrous.mixPanel = new MixpanelWrapper 'b578a80392e7a6878d74020c9a5d5b57'
+  nitrous.mixPanel.track 'App Started'
 
 initWindow = (js, options={}) ->
   options['web-preferences'] =
     'web-security': false
+  options.data = {} unless options.data
   win = new BrowserWindow(options)
   protocol = if config.asar then 'asar:/' else 'file://'
   win.loadUrl(protocol + __dirname + '/index.html')
