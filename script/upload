@@ -6,9 +6,9 @@ thisOS=`uname`
 
 s3cmdBase=""
 if [[ -z "$AWS_ACCESS_KEY" && -z "$AWS_SECRET_KEY" ]]; then
-  s3cmdBase="s3cmd"
+  s3cmdBase="s3cmd --no-preserve"
 else
-  s3cmdBase="s3cmd --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_SECRET_KEY"
+  s3cmdBase="s3cmd --access_key=$AWS_ACCESS_KEY --secret_key=$AWS_SECRET_KEY --no-preserve"
 fi
 
 for target in ./dist/*; do
@@ -34,12 +34,11 @@ for target in ./dist/*; do
       jsonUrl="$S3_URL/$distType/app.json"
       jsonContents=`curl $jsonUrl 2>/dev/null`
       expected="\"version\": \"$thisVersion\""
+      finalUrl="$S3_URL/$distType/$foundFile"
       if ! [ "${jsonContents/$expected}" = "$jsonContents" ] ; then
-        echo $jsonContents
         echo "[$distType] Version $thisVersion already exists!"
       else
         echo "[$distType] Version $thisVersion does not exist, will upload."
-        finalUrl="$S3_URL/$distType/$foundFile"
         fileSize=""
         if [[ $thisOS == "Darwin" ]]; then
           fileSize=$(stat -f%z "$foundFile")
@@ -50,9 +49,20 @@ for target in ./dist/*; do
         $s3cmdBase put -P $foundFile s3://$BUCKET_NAME/$distType/$foundFile
         tmpLoc="/tmp/$foundFile.json"
         echo $appJson > $tmpLoc
-        echo $s3cmdBase
         $s3cmdBase put -m "application/json" -P $tmpLoc s3://$BUCKET_NAME/$distType/app.json
         rm -rf $tmpLoc
+      fi
+
+      downloadUrl="$S3_URL/$distType/download.html"
+      downloadContents=`curl $downloadUrl 2>/dev/null`
+      if ! [ "${downloadContents/$finalUrl}" = "$downloadContents" ] ; then
+        echo "[$distType] download.html for Version $thisVersion already exists!"
+      else
+        downloadSource="<html><head><meta http-equiv=\"refresh\" content=\"0; url=$finalUrl\"></head><body></body></html>"
+        tmpDownload="/tmp/$foundFile.html"
+        echo $downloadSource > $tmpDownload
+        $s3cmdBase put $tmpDownload s3://$BUCKET_NAME/$distType/download.html -P --add-header="x-amz-website-redirect-location:$finalUrl"
+        rm -rf $tmpDownload
       fi
     else
       echo "No version found"
