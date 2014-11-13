@@ -1,6 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 shell = require 'shell'
+ipc = require 'ipc'
 
 NITROUS_FOLDER_PATH = path.join(App.homePath, 'Nitrous')
 
@@ -37,6 +38,15 @@ App.FileSync = klass = Em.Object.extend
   syncIssues: (->
     @get('enabled') && (@get('remoteWatcherIssues') || @get('localWatcherIssues') || @get('unisonIssues'))
   ).property 'unisonIssues', 'remoteWatcherIssues', 'localWatcherIssues', 'enabled'
+
+  enabledChanged: (->
+    if @get 'enabled'
+      App.track 'File Sync Enabled',
+        container_id: @get('container').id
+    else
+      App.track 'File Sync Disabled',
+        container_id: @get('container').id
+  ).observes 'enabled'
 
   showSyncFolder: ->
     if App.platform.isMac || App.platform.isWindows

@@ -80,6 +80,11 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
     App.get('eventsSocket').disconnect()
     App.set('eventsSocket', null)
 
+  track: (event_name, data)->
+    ipc.send 'track',
+      eventName:event_name
+      data: data
+
 window.App = klass.create()
 
 $(window).on 'online', ->

@@ -6,5 +6,7 @@ Rails.application.config.assets.precompile += %w(
   login-window/login-window.js
   main-window/main-window.js
   lib/ajax.js
+  lib/mixpanel-wrapper.js
+  lib/mixpanel.js
   config.js
 )
