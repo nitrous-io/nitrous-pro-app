@@ -28,8 +28,8 @@ app.on 'ready', ->
     nitrous.mainWindow = win = initWindow 'main-window/main-window',
       width: 500
       height: 700
-      'min-width': 400
-      'min-height': 160
+      'min-width': 500
+      'min-height': 300
       'use-content-size': true
       'auto-hide-menu-bar': false
       data:
