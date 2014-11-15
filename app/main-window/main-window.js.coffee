@@ -46,7 +46,7 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
 
   hosts: null
   containers: null
-  selectedContainer: null
+  selectedContainerId: null
 
   online: navigator.onLine
   offline: Em.computed.not 'online'
@@ -60,6 +60,10 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   userDataPath: path.join(usersDataPath, username)
 
   appPath: config.appPath
+
+  selectedContainer: (->
+    App.get('containers').findBy 'id', @get('selectedContainerId')
+  ).property 'selectedContainerId', 'containers.@each'
 
   quit: ->
     mainApp.quit()

@@ -3,7 +3,7 @@ App.MainWindowController = Em.Controller.extend
     selectContainer: (container) ->
       App.track 'Select Container',
         container_id: container.id
-      App.set 'selectedContainer', container
+      App.set 'selectedContainerId', container.id
 
     showSyncFolder: (fileSync) ->
       App.track 'Click Open Folder',
