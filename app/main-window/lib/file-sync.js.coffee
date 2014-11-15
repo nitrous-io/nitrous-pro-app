@@ -49,6 +49,9 @@ App.FileSync = klass = Em.Object.extend
   ).observes 'enabled'
 
   showSyncFolder: ->
+    unless fs.existsSync @get('syncPath')
+      return window.alert "Please enable File Sync for the first time to create your folder."
+
     if App.platform.isMac || App.platform.isWindows
       shell.openExternal "file://#{@get 'syncPath'}"
     else
