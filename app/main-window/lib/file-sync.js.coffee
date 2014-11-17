@@ -23,13 +23,18 @@ App.FileSync = klass = Em.Object.extend
     Em.run.next =>
       @controlWatcher()
 
+  hostPath: (->
+    if hostSlug = @get 'container.host.slug'
+      path.join(NITROUS_FOLDER_PATH, hostSlug)
+  ).property 'container.host.slug'
+
   syncPath: (->
-    if slug = @get 'container.slug'
-      path.join(NITROUS_FOLDER_PATH, slug)
-  ).property 'container.slug'
+    if (hostPath = @get 'hostPath') && (slug = @get 'container.slug')
+      path.join(hostPath, slug)
+  ).property 'hostPath', 'container.slug'
 
   controlWatcher: (->
-    if @get('enabled') && @get('container.state') == 'running' && App.get('online') && @get('syncPath') && @get('container.sshUrl')
+    if @get('enabled') && @get('container.state') == 'running' && App.get('online') && @get('hostPath') && @get('syncPath') && @get('container.sshUrl')
       @startWatcher()
     else
       @stopWatcher()
@@ -62,36 +67,16 @@ App.FileSync = klass = Em.Object.extend
     @set 'started', true
 
     syncPath = @get 'syncPath'
-    container = @get 'container'
-    slug = container.get 'slug'
-    sshUrl = container.get 'sshUrl'
+    hostPath = @get 'hostPath'
 
     # make nitrous folder
     fs.mkdir NITROUS_FOLDER_PATH, '0755', (err) =>
       return cb?(err) if err && err.code != 'EEXIST'
-      fs.mkdir syncPath, '0755', (err) =>
+      fs.mkdir hostPath, '0755', (err) =>
         return cb?(err) if err && err.code != 'EEXIST'
-        # initialize watcher
-        @set 'unison', App.Unison.create(container: container, syncPath: syncPath, onRetry: =>
-          @_unisonRestarting()
-        , onRestored: =>
-          @_unisonRestored()
-        )
-        @set 'watcher', watcher = new App.Watcher(syncPath)
-        watcher.on 'change', (change) =>
-          @_log "detected local fs change at #{change}"
-          @performSync()
-        watcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
-        watcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
-        @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
-        remoteWatcher.on 'change', (change) =>
-          @_log "detected remote fs change at #{change}"
-          @performSync()
-        remoteWatcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
-        remoteWatcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
-        # perform initial sync
-        @kickOffInitialSync()
-        cb?()
+        fs.mkdir syncPath, '0755', (err) =>
+          return cb?(err) if err && err.code != 'EEXIST'
+          @_initializeWatcher(cb)
 
   stopWatcher: ->
     if watcher = @get 'watcher'
@@ -116,6 +101,33 @@ App.FileSync = klass = Em.Object.extend
       @get('watcher').start()
       @_log 'starting remote watcher...'
       @get('remoteWatcher').start()
+
+  _initializeWatcher: (cb) ->
+    syncPath = @get 'syncPath'
+    container = @get 'container'
+    slug = container.get 'slug'
+    sshUrl = container.get 'sshUrl'
+
+    @set 'unison', App.Unison.create(container: container, syncPath: syncPath, onRetry: =>
+      @_unisonRestarting()
+    , onRestored: =>
+      @_unisonRestored()
+    )
+    @set 'watcher', watcher = new App.Watcher(syncPath)
+    watcher.on 'change', (change) =>
+      @_log "detected local fs change at #{change}"
+      @performSync()
+    watcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
+    watcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
+    @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
+    remoteWatcher.on 'change', (change) =>
+      @_log "detected remote fs change at #{change}"
+      @performSync()
+    remoteWatcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
+    remoteWatcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
+    # perform initial sync
+    @kickOffInitialSync()
+    cb?()
 
   _unisonRestarting: ->
     @set('unisonIssues', true)
