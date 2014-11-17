@@ -10,7 +10,7 @@ for target in ./dist/*; do
       zip -r -y "Nitrous.app-$version.zip" Nitrous.app
     else
       rm -rf "nitrous-$version.zip"
-      zip -r "nitrous-$version.zip" Nitrous
+      zip -r -y "nitrous-$version.zip" Nitrous
     fi
     cd ../../
   fi
