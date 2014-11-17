@@ -49,12 +49,12 @@ App.FileSync = klass = Em.Object.extend
       App.track 'File Sync Enabled',
         container_id: @get('container').id
       if App.containersEnabledFileSync && !App.containersEnabledFileSync.contains(@get('container').id)
-        App.containersEnabledFileSync.addObject @get('container').id
+        App.fileSyncTracker.isEnabled @get('container').id
     else
       App.track 'File Sync Disabled',
         container_id: @get('container').id
-      if App.containersEnabledFileSync
-        App.containersEnabledFileSync.removeObject @get('container').id
+      if App.fileSyncTracker
+        App.fileSyncTracker.isDisabled @get('container').id
   ).observes 'enabled'
 
   showSyncFolder: ->

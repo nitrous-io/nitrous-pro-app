@@ -61,8 +61,7 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
 
   appPath: config.appPath
 
-  containersEnabledFileSyncLoaded: false
-  containersEnabledFileSync: null
+  fileSyncTracker: null
 
   selectedContainer: (->
     App.get('containers').findBy 'id', @get('selectedContainerId')
@@ -92,45 +91,6 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
       eventName:event_name
       data: data
 
-  loadEnabledFileSyncContainers: ->
-    @loadingFileSyncContents = true
-    @set 'containersEnabledFileSync', ary = Em.ArrayProxy.create({ content: Ember.A([]) })
-
-    curData = window.localStorage.getItem 'fileSyncEnabled'
-    if curData
-      deser = JSON.parse curData
-      ary.addObjects deser
-
-    @set 'containersEnabledFileSyncLoaded', true
-    @loadingFileSyncContents = false
-    true
-
-  writeEnabledFileSyncContainers: (->
-    return if @loadingFileSyncContents
-
-    ary = @get 'containersEnabledFileSync.content'
-    if config.debug
-      console.log "[main] Writing to fileSyncEnabled, #{ary.length} objects"
-
-    window.localStorage.setItem 'fileSyncEnabled', JSON.stringify(ary)
-  ).observes 'containersEnabledFileSync.@each'
-
-  restoreFileSync: (->
-    return unless @get 'containersEnabledFileSyncLoaded'
-    return if @get('fileSyncRestored') || @get('containers') == null || @get('containers.length') == 0
-
-    previousFileSyncs = @get 'containersEnabledFileSync'
-    console.log "Length: #{@get('containers.length')}"
-    @get('containers').forEach (container) =>
-      if previousFileSyncs.contains container.id
-        if config.debug
-          console.log "[main] #{container.id} Restoring file-sync"
-        debugger
-        container.get('fileSync').set('enabled', true)
-
-    @set 'fileSyncRestored', true
-  ).observes 'containers.@each', 'containersEnabledFileSync.@each', 'containersEnabledFileSyncLoaded'
-
 window.App = klass.create()
 
 $(window).on 'online', ->
@@ -146,7 +106,8 @@ fs.mkdirSync(App.usersDataPath, '0755') unless fs.existsSync(App.usersDataPath)
 fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 
 App.on 'app-did-load', ->
-  App.loadEnabledFileSyncContainers()
+  App.set 'fileSyncTracker', tracker = App.FileSyncTracker.create()
+  tracker.loadEnabledFileSyncContainers()
 
   App.set 'sshKey', sshKey = App.SSHKey.create()
   sshKey.load()
