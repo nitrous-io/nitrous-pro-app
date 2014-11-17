@@ -23,3 +23,4 @@ module.exports = class MixpanelWrapper
       $email: @userEmail
       admin: @userAdmin
       platform: process.platform
+      appVersion: config.version
