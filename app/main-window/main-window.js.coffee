@@ -122,13 +122,13 @@ App.on 'app-did-load', ->
   App.loadEventsSocket()
 
 App.on 'log-out', ->
-  window.localStorage.removeItem 'fileSyncEnabled'
+  App.get('fileSyncTracker').flush()
+  App.set('fileSyncTracker.loaded', false)
   window.localStorage.removeItem 'access-token'
   App.get('sshKey')?.deleteKeys()
   App.Watcher.stopAll()
   ipc.send 'logged-out'
   App.unloadEventsSocket()
-  @set('fileSyncRestored', false)
 
 window.onbeforeunload = ->
   App.Watcher.stopAll()

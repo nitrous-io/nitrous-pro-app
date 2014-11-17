@@ -1,8 +1,10 @@
+config = require './config'
+
+LOCALSTORAGE_KEY = 'fileSyncEnabled'
 App.FileSyncTracker = klass = Em.Object.extend
 
   loaded: false
   enabledContainers: null
-  containers: null
 
   init: ->
     @_super.apply this, arguments
@@ -13,11 +15,14 @@ App.FileSyncTracker = klass = Em.Object.extend
   isDisabled: (cId)->
     @get('enabledContainers').removeObject cId
 
+  flush: ->
+    window.localStorage.removeItem 'fileSyncEnabled'
+
   loadEnabledFileSyncContainers: ->
     @loadingFileSyncContents = true
     @set 'enabledContainers', ary = Em.ArrayProxy.create({ content: Ember.A([]) })
 
-    curData = window.localStorage.getItem 'fileSyncEnabled'
+    curData = window.localStorage.getItem LOCALSTORAGE_KEY
     if curData
       deser = JSON.parse curData
       ary.addObjects deser
@@ -31,23 +36,28 @@ App.FileSyncTracker = klass = Em.Object.extend
 
     ary = @get 'enabledContainers.content'
     if config.debug
-      console.log "[main] Writing to fileSyncEnabled, #{ary.length} objects"
+      @_log "Writing to #{LOCALSTORAGE_KEY}, #{ary.length} objects"
 
-    window.localStorage.setItem 'fileSyncEnabled', JSON.stringify(ary)
+    window.localStorage.setItem LOCALSTORAGE_KEY, JSON.stringify(ary)
   ).observes 'enabledContainers.@each'
 
   restoreFileSync: (->
     return unless @get 'loaded'
-    return if @get('fileSyncRestored') || @get('containers') == null || @get('containers.length') == 0
+    return if @get('fileSyncRestored') || App.get('containers') == null || App.get('containers') == undefined || App.get('containers.length') == 0
 
     previousFileSyncs = @get 'enabledContainers'
-    console.log "Length: #{@get('containers.length')}"
-    @get('containers').forEach (container) =>
+    App.get('containers').forEach (container) =>
       if previousFileSyncs.contains container.id
         if config.debug
-          console.log "[main] #{container.id} Restoring file-sync"
+          @_log "#{container.id} Restoring file-sync"
         debugger
-        container.get('fileSync').set('enabled', true)
+        container.get('fileSync').set('enableWhenReady', true)
 
     @set 'fileSyncRestored', true
-  ).observes 'containers.@each', 'enabledContainers.@each', 'loaded'
+  ).observes 'App.containers.@each', 'enabledContainers.@each', 'loaded'
+
+  _log: (firstMessage, others...) ->
+    return unless config.debug
+    messages = ["[file-sync-tracker] #{firstMessage}"]
+    messages.concat others
+    console.log.apply console, messages
