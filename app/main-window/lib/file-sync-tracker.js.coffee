@@ -1,7 +1,7 @@
 config = require './config'
 
 LOCALSTORAGE_KEY = 'fileSyncEnabled'
-App.FileSyncTracker = klass = Em.Object.extend
+App.FileSyncTracker = Em.Object.extend
 
   loaded: false
   enabledContainers: null

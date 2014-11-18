@@ -91,6 +91,45 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
       eventName:event_name
       data: data
 
+  fetchHosts: ->
+    @set 'hosts', App.Host.fetch()
+
+  fetchContainers: ->
+    if @get('containers') == null
+      return @set 'containers', App.Container.fetch()
+
+    @_log "Containers refreshing"
+    @refreshingContainers = true
+    existingContainers = @get 'containers'
+    removeable = existingContainers.content.copy()
+    App.Container.fetchEachRaw (cJson) =>
+      removeable = removeable.rejectBy 'id', cJson.id
+      existingContainer = existingContainers.findBy('id', cJson.id)
+      if existingContainer
+        @_log "Updating existing container [#{existingContainer.get('id')}]"
+        wasSyncing = existingContainer.get 'fileSync.enabled'
+        existingContainer.applyFromJsonObject cJson
+        existingContainer.refreshConfig()
+      else
+        newCon = App.Container.create()
+        newCon.applyFromJsonObject cJson
+        newCon.get 'config'
+        newCon
+        @_log "Adding new container [#{newCon.get('id')}]"
+        existingContainers.addObject newCon
+    , () ->
+      removeable.forEach (c)->
+        @_log "Removing [#{c.id}]"
+        c.set('fileSync.enabled', false)
+      existingContainers.removeObjects removeable
+      @refreshingContainers = false
+
+  _log: (firstMessage, others...) ->
+    return unless config.debug
+    messages = ["[main-window] #{firstMessage}"]
+    messages.concat others
+    console.log.apply console, messages
+
 window.App = klass.create()
 
 $(window).on 'online', ->
