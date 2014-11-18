@@ -94,6 +94,16 @@ App.Container = klass = Em.Object.extend
     "http://#{hostname}:#{port}"
   ).property 'host.hostname', 'previewPort'
 
+  localPreviewPort: (->
+    return unless prevPort = @get 'previewPort'
+    pubPort = null
+    if portBindings = @get 'config.port'
+      reg = new RegExp "^public:#{prevPort}:(\\d+)(/tcp)?$"
+      for portBinding in portBindings
+        break if pubPort = portBinding.match(reg)?[1]
+    pubPort
+  ).property 'previewPort'
+
   applyFromJsonObject: (c)->
     @setProperties
       id: c.id

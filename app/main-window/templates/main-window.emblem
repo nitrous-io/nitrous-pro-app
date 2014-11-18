@@ -23,6 +23,19 @@ if App.hosts
                 .state-orb class={container.state}
                 = container.displayName
               .container-details
+                .overview
+                  table
+                    tbody
+                      tr
+                        th Slug
+                        td
+                          = container.slug
+                      if container.localPreviewPort
+                        tr
+                          th
+                            | Preview Port
+                          td
+                            = container.localPreviewPort
                 .content
                   with App.selectedContainer
                     if configLoaded
@@ -35,7 +48,8 @@ if App.hosts
                       if sshAccessSupported
                         button click='openSSHShell App.selectedContainer' Shell
                       if previewUrl
-                        button click='openPreview App.selectedContainer' Preview
+                        button click='openPreview App.selectedContainer'
+                          | Preview
 else
   .containing
     .notice
