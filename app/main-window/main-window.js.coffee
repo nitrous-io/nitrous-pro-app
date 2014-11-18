@@ -61,6 +61,8 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
 
   appPath: config.appPath
 
+  fileSyncTracker: null
+
   selectedContainer: (->
     App.get('containers').findBy 'id', @get('selectedContainerId')
   ).property 'selectedContainerId', 'containers.@each'
@@ -89,6 +91,45 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
       eventName:event_name
       data: data
 
+  fetchHosts: ->
+    @set 'hosts', App.Host.fetch()
+
+  fetchContainers: ->
+    if @get('containers') == null
+      return @set 'containers', App.Container.fetch()
+
+    @_log "Containers refreshing"
+    @refreshingContainers = true
+    existingContainers = @get 'containers'
+    removeable = existingContainers.content.copy()
+    App.Container.fetchEachRaw (cJson) =>
+      removeable = removeable.rejectBy 'id', cJson.id
+      existingContainer = existingContainers.findBy('id', cJson.id)
+      if existingContainer
+        @_log "Updating existing container [#{existingContainer.get('id')}]"
+        wasSyncing = existingContainer.get 'fileSync.enabled'
+        existingContainer.applyFromJsonObject cJson
+        existingContainer.refreshConfig()
+      else
+        newCon = App.Container.create()
+        newCon.applyFromJsonObject cJson
+        newCon.get 'config'
+        newCon
+        @_log "Adding new container [#{newCon.get('id')}]"
+        existingContainers.addObject newCon
+    , () ->
+      removeable.forEach (c)->
+        @_log "Removing [#{c.id}]"
+        c.set('fileSync.enabled', false)
+      existingContainers.removeObjects removeable
+      @refreshingContainers = false
+
+  _log: (firstMessage, others...) ->
+    return unless config.debug
+    messages = ["[main-window] #{firstMessage}"]
+    messages.concat others
+    console.log.apply console, messages
+
 window.App = klass.create()
 
 $(window).on 'online', ->
@@ -104,6 +145,9 @@ fs.mkdirSync(App.usersDataPath, '0755') unless fs.existsSync(App.usersDataPath)
 fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
 
 App.on 'app-did-load', ->
+  App.set 'fileSyncTracker', tracker = App.FileSyncTracker.create()
+  tracker.loadEnabledFileSyncContainers()
+
   App.set 'sshKey', sshKey = App.SSHKey.create()
   sshKey.load()
 
@@ -117,6 +161,8 @@ App.on 'app-did-load', ->
   App.loadEventsSocket()
 
 App.on 'log-out', ->
+  App.get('fileSyncTracker').flush()
+  App.set('fileSyncTracker.loaded', false)
   window.localStorage.removeItem 'access-token'
   App.get('sshKey')?.deleteKeys()
   App.Watcher.stopAll()

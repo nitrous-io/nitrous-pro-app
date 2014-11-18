@@ -47,8 +47,7 @@ App.EventsSocket = App.Socket.extend
 
   refreshContainers: (container) ->
     cb = () =>
-      App.Container.fetch (containers) =>
-        App.set 'containers', containers
+      App.fetchContainers()
 
     if container
       hostId = container.host_id

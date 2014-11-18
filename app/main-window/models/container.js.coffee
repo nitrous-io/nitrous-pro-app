@@ -33,11 +33,7 @@ App.Container = klass = Em.Object.extend
 
   config: (->
     config = Em.ObjectProxy.create()
-    ajax(
-      type: 'GET'
-      url: "/api/v0/containers/#{@get 'id'}/config"
-    ).then (res) =>
-      config.set 'content', res.config
+    @refreshConfig()
     config
   ).property 'id'
 
@@ -98,8 +94,25 @@ App.Container = klass = Em.Object.extend
     "http://#{hostname}:#{port}"
   ).property 'host.hostname', 'previewPort'
 
+  applyFromJsonObject: (c)->
+    @setProperties
+      id: c.id
+      cid: c.cid
+      name: c.name
+      slug: c.slug
+      state: c.state
+      image: c.image
+      hostId: c.host_id
+
+  refreshConfig: ->
+    ajax(
+      type: 'GET'
+      url: "/api/v0/containers/#{@get 'id'}/config"
+    ).then (res) =>
+      @set 'config.content', res.config
+
 klass.reopenClass
-  fetch: (cb) ->
+  fetchEachRaw: (eachFunc, cb) ->
     containers = Em.ArrayProxy.create()
     ajax(
       type: 'GET'
@@ -107,18 +120,18 @@ klass.reopenClass
     ).then (res) ->
       if Em.isArray(res.containers)
         containers.set 'content', res.containers.map (c) ->
-          container = App.Container.create
-            id: c.id
-            cid: c.cid
-            name: c.name
-            slug: c.slug
-            state: c.state
-            image: c.image
-            hostId: c.host_id
-          container.get 'config'
-          container
+          eachFunc(c)
       cb?(containers)
     , (jqxhr) ->
       json = jqxhr.responseJSON
       window.alert(json?.error_description || json?.error || "Failed to load containers (#{jqxhr.statusText})")
     containers
+
+  fetch: (cb) ->
+    @fetchEachRaw (c) ->
+      container = App.Container.create()
+      container.applyFromJsonObject c
+      container.get 'config'
+      container
+    , (containers) ->
+      cb?(containers)

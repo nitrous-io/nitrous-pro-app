@@ -18,6 +18,8 @@ App.FileSync = klass = Em.Object.extend
   localWatcherIssues: false
   unisonIssues: false
 
+  enableWhenReady: false
+
   init: ->
     @_super.apply this, arguments
     Em.run.next =>
@@ -33,12 +35,19 @@ App.FileSync = klass = Em.Object.extend
       path.join(hostPath, slug)
   ).property 'hostPath', 'container.slug'
 
+  enableWhenReadyWatcher: (->
+    return unless @get('enableWhenReady')
+    if App.get('online') && @get('hostPath') && @get('syncPath') && @get('container.sshUrl')
+      @set 'enabled', true
+      @set 'enableWhenReady', false
+  ).observes 'App.online', 'hostPath', 'syncPath', 'container.sshUrl', 'enableWhenReady'
+
   controlWatcher: (->
     if @get('enabled') && @get('container.state') == 'running' && App.get('online') && @get('hostPath') && @get('syncPath') && @get('container.sshUrl')
       @startWatcher()
     else
       @stopWatcher()
-  ).observes 'enabled', 'container.state', 'App.online', 'syncPath', 'container.sshUrl'
+  ).observes 'enabled', 'container.state', 'App.online', 'hostPath', 'syncPath', 'container.sshUrl'
 
   syncIssues: (->
     @get('enabled') && (@get('remoteWatcherIssues') || @get('localWatcherIssues') || @get('unisonIssues'))
@@ -48,9 +57,13 @@ App.FileSync = klass = Em.Object.extend
     if @get 'enabled'
       App.track 'File Sync Enabled',
         container_id: @get('container').id
+      if App.get('fileSyncTracker')
+        App.get('fileSyncTracker').isEnabled @get('container').id
     else
       App.track 'File Sync Disabled',
         container_id: @get('container').id
+      if App.get('fileSyncTracker')
+        App.get('fileSyncTracker').isDisabled @get('container').id
   ).observes 'enabled'
 
   showSyncFolder: ->
