@@ -2,6 +2,7 @@
 
 BUCKET_NAME="nitrous-pro-app"
 S3_URL="https://nitrous-pro-app.s3.amazonaws.com"
+CFRONT_URL="http://getpro.nitrous.io"
 thisOS=`uname`
 
 s3cmdBase=""
@@ -34,7 +35,7 @@ for target in ./dist/*; do
       jsonUrl="$S3_URL/$distType/app.json"
       jsonContents=`curl $jsonUrl 2>/dev/null`
       expected="\"version\": \"$thisVersion\""
-      finalUrl="$S3_URL/$distType/$foundFile"
+      cdnUrl="$CFRONT_URL/$distType/$foundFile"
       if ! [ "${jsonContents/$expected}" = "$jsonContents" ] ; then
         echo "[$distType] Version $thisVersion already exists!"
       else
@@ -45,7 +46,7 @@ for target in ./dist/*; do
         else
           fileSize=$(stat -c%s "$foundFile")
         fi
-        appJson="{ \"version\": \"$thisVersion\", \"url\": \"$finalUrl\", \"fileSize\": $fileSize }"
+        appJson="{ \"version\": \"$thisVersion\", \"url\": \"$cdnUrl\", \"fileSize\": $fileSize }"
         $s3cmdBase put -P $foundFile s3://$BUCKET_NAME/$distType/$foundFile
         tmpLoc="/tmp/$foundFile.json"
         echo $appJson > $tmpLoc
@@ -55,13 +56,13 @@ for target in ./dist/*; do
 
       downloadUrl="$S3_URL/$distType/download.html"
       downloadContents=`curl $downloadUrl 2>/dev/null`
-      if ! [ "${downloadContents/$finalUrl}" = "$downloadContents" ] ; then
+      if ! [ "${downloadContents/$cdnUrl}" = "$downloadContents" ] ; then
         echo "[$distType] download.html for Version $thisVersion already exists!"
       else
-        downloadSource="<html><head><meta http-equiv=\"refresh\" content=\"0; url=$finalUrl\"></head><body></body></html>"
+        downloadSource="<html><head><meta http-equiv=\"refresh\" content=\"0; url=$cdnUrl\"></head><body></body></html>"
         tmpDownload="/tmp/$foundFile.html"
         echo $downloadSource > $tmpDownload
-        $s3cmdBase put $tmpDownload s3://$BUCKET_NAME/$distType/download.html -P --add-header="x-amz-website-redirect-location:$finalUrl"
+        $s3cmdBase put $tmpDownload s3://$BUCKET_NAME/$distType/download.html -P --cf-invalidate --add-header="Cache-Control:max-age=600" --add-header="x-amz-website-redirect-location:$cdnUrl"
         rm -rf $tmpDownload
       fi
     else
