@@ -6,6 +6,8 @@ module.exports = class MixpanelWrapper
     @mixPanel = Mixpanel.init token
 
   track: (event_name, data) ->
+    if config.env == "development"
+       return console.log "[mix-panel] '#{event_name}' received in development"
     data = {} unless data
     data.appVersion = config.version
     data.platform = process.platform
@@ -16,6 +18,8 @@ module.exports = class MixpanelWrapper
     @mixPanel.track event_name, data
 
   setUser: (user) ->
+    if config.env == "development"
+       return console.log "[mix-panel] user '#{user.email}' in development"
     @userEmail = user.email
     @userAdmin = user.admin
     @mixPanel.people.set user.username,
