@@ -255,14 +255,20 @@ App.Unison = klass = Em.Object.extend
     ignoreList=[]
     string.split(/\n/).forEach (l)=>
       return if l.length == 0 || l[0] == "#"
+
       pathMode = false
+      # switch between relative and absolute mode
       if l[0] == "/"
         pathMode = true
         l = l.substr 1
 
+      # convert globs to Regex
       if l.indexOf("**") != -1
         l = l.replace /\./g, "\\."
         l = l.replace /\*/g, ".*"
+        unless pathMode
+          # apply to all sub-directories
+          ignoreList.push "Regex .*/#{l}"
         ignoreList.push "Regex #{l}"
       else
         mode = if pathMode
