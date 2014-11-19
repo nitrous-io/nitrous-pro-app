@@ -25,6 +25,7 @@ App.Unison = klass = Em.Object.extend
   process: null
 
   lastErrorMessage: null
+  malformedPattern: null
   transferCount: 0
   retrySchedule: null
 
@@ -37,6 +38,7 @@ App.Unison = klass = Em.Object.extend
 
   onRetry: null
   onRestored: null
+  onPatternError: null
 
   syncOnly: null
 
@@ -178,6 +180,9 @@ App.Unison = klass = Em.Object.extend
         @_log 'Lost connection'
         @set 'lastErrorMessage', 'Connection failed'
         @set 'shouldRetryWithDelay', 5000
+      else if patErr = data.match(/Malformed\s*pattern:\s*(.+)/)?[1]?.toLowerCase()
+        patErr = patErr.replace(/(^"|"$)/g, "")
+        @set 'malformedPattern', patErr
       else
         @set 'lastErrorMessage', errorMessage
         @set 'shouldRetryWithDelay', 5000
@@ -200,6 +205,9 @@ App.Unison = klass = Em.Object.extend
         return @scheduleRetry(cb, 5000) if err
         @sync(cb)
       return
+
+    if pattErr = @get 'malformedPattern'
+      return @get('onPatternError')?(pattErr)
 
     if @get 'shouldAbort'
       return @set 'shouldAbort', false

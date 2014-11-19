@@ -111,7 +111,7 @@ App.FileSync = klass = Em.Object.extend
     @set 'unison.syncOnly', 'Name .syncignore'
     @_log "Syncing across .syncignore"
     @performSync =>
-      @loadSyncIgnore()
+      @loadSyncIgnore(true)
       @_log "Resuming regular sync"
       @set 'unison.syncOnly', null
       @performSync =>
@@ -122,7 +122,7 @@ App.FileSync = klass = Em.Object.extend
         @_log 'starting remote watcher...'
         @get('remoteWatcher').start()
 
-  loadSyncIgnore: ->
+  loadSyncIgnore: (force) ->
     unison = @get 'unison'
     return unless unison
 
@@ -130,7 +130,7 @@ App.FileSync = klass = Em.Object.extend
     if fs.existsSync syncFile
       fInfo = fs.statSync syncFile
       lastModified = fInfo.mtime.getTime()
-      if lastModified != @get 'syncIgnoreLastModified'
+      if lastModified != @get('syncIgnoreLastModified') || force
         @_log "Loading .syncignore"
         @set 'syncIgnoreLastModified', lastModified
         contents = fs.readFileSync(syncFile, 'utf8')
@@ -148,6 +148,8 @@ App.FileSync = klass = Em.Object.extend
       @_unisonRestarting()
     , onRestored: =>
       @_unisonRestored()
+    , onPatternError: (patt) =>
+      @_unisonPatternError(patt)
     )
     @set 'watcher', watcher = new App.Watcher(syncPath)
     watcher.on 'change', (change) =>
@@ -186,6 +188,10 @@ App.FileSync = klass = Em.Object.extend
 
     if watcher == @get('watcher')
       @set 'localWatcherIssues', false
+
+  _unisonPatternError: (patt) ->
+    window.alert("Pattern: '#{patt}' is incorrect, please correct in .syncignore")
+    @stopWatcher()
 
   _log: (firstMessage, others...) ->
     messages = ["[file-sync] #{@get('container.slug')}: #{firstMessage}"]
