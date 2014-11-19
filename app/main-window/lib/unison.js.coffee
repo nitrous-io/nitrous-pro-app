@@ -38,6 +38,10 @@ App.Unison = klass = Em.Object.extend
   onRetry: null
   onRestored: null
 
+  syncOnly: null
+
+  ignoreList: null
+
   abort: ->
     @_log 'aborting sync...'
     if @get 'syncing'
@@ -96,6 +100,14 @@ App.Unison = klass = Em.Object.extend
         '-servercmd', '/nitrous/nitrous-unison'
         '-sshcmd', SSH_BIN_PATH
       ]
+
+      if syncOnly = @get 'syncOnly'
+        args.push '-ignore', 'Name ?*', '-ignorenot', syncOnly
+
+      if (ignoreList = @get('ignoreList')) != null
+        ignoreList.forEach (ignore) =>
+          @_log "Ingoring #{ignore}"
+          args.push '-ignore', ignore
 
       # place archives file in syncPath/.unison
       unisonArchivesPath = path.join(syncPath, '.unison')
@@ -230,6 +242,27 @@ App.Unison = klass = Em.Object.extend
     sshKey = App.get('sshKey')
     sshKey.upload container, (err) =>
       cb?(err)
+
+  parseIgnoreContents: (string) ->
+    ignoreList=[]
+    string.split(/\n/).forEach (l)=>
+      return if l.length == 0 || l[0] == "#"
+      pathMode = false
+      if l[0] == "/"
+        pathMode = true
+        l = l.substr 1
+
+      if l.indexOf("**") != -1
+        l = l.replace /\./g, "\\."
+        l = l.replace /\*/g, ".*"
+        ignoreList.push "Regex #{l}"
+      else
+        mode = if pathMode
+          "Path"
+        else
+          "Name"
+        ignoreList.push "#{mode} #{l}"
+    @set 'ignoreList', ignoreList
 
   _log: (firstMessage, others...) ->
     messages = ["[unison] #{@get('container.slug')}: #{firstMessage}"]
