@@ -50,7 +50,6 @@ App.FileSyncTracker = Em.Object.extend
       if previousFileSyncs.contains container.id
         if config.debug
           @_log "#{container.id} Restoring file-sync"
-        debugger
         container.get('fileSync').set('enableWhenReady', true)
 
     @set 'fileSyncRestored', true

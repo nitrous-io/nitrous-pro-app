@@ -13,6 +13,7 @@ App.FileSync = klass = Em.Object.extend
   started: false
   enabled: false
   unison: null
+  syncIgnoreLastModified: null
 
   remoteWatcherIssues: false
   localWatcherIssues: false
@@ -107,13 +108,35 @@ App.FileSync = klass = Em.Object.extend
     @set 'enabled', false
 
   kickOffInitialSync: ->
+    @set 'unison.syncOnly', 'Name .syncignore'
+    @_log "Syncing across .syncignore"
     @performSync =>
-      # initial sync succeeded, fire up watchers
-      return unless @get 'started' # if sync is disabled before first sync is completed
-      @_log 'starting watcher...'
-      @get('watcher').start()
-      @_log 'starting remote watcher...'
-      @get('remoteWatcher').start()
+      @loadSyncIgnore(true)
+      @_log "Resuming regular sync"
+      @set 'unison.syncOnly', null
+      @performSync =>
+        # initial sync succeeded, fire up watchers
+        return unless @get 'started' # if sync is disabled before first sync is completed
+        @_log 'starting watcher...'
+        @get('watcher').start()
+        @_log 'starting remote watcher...'
+        @get('remoteWatcher').start()
+
+  loadSyncIgnore: (force) ->
+    unison = @get 'unison'
+    return unless unison
+
+    syncFile = path.join(@get('syncPath'), '.syncignore')
+    if fs.existsSync syncFile
+      fInfo = fs.statSync syncFile
+      lastModified = fInfo.mtime.getTime()
+      if lastModified != @get('syncIgnoreLastModified') || force
+        @_log "Loading .syncignore"
+        @set 'syncIgnoreLastModified', lastModified
+        contents = fs.readFileSync(syncFile, 'utf8')
+        unison.parseIgnoreContents contents
+    else
+      unison.parseIgnoreContents ""
 
   _initializeWatcher: (cb) ->
     syncPath = @get 'syncPath'
@@ -125,17 +148,21 @@ App.FileSync = klass = Em.Object.extend
       @_unisonRestarting()
     , onRestored: =>
       @_unisonRestored()
+    , onPatternError: (patt) =>
+      @_unisonPatternError(patt)
     )
     @set 'watcher', watcher = new App.Watcher(syncPath)
     watcher.on 'change', (change) =>
       @_log "detected local fs change at #{change}"
+      @loadSyncIgnore()
       @performSync()
     watcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
     watcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
     @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
     remoteWatcher.on 'change', (change) =>
       @_log "detected remote fs change at #{change}"
-      @performSync()
+      @performSync =>
+        @loadSyncIgnore()
     remoteWatcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
     remoteWatcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
     # perform initial sync
@@ -161,6 +188,10 @@ App.FileSync = klass = Em.Object.extend
 
     if watcher == @get('watcher')
       @set 'localWatcherIssues', false
+
+  _unisonPatternError: (patt) ->
+    window.alert("Pattern: '#{patt}' is incorrect, please correct in .syncignore")
+    @stopWatcher()
 
   _log: (firstMessage, others...) ->
     messages = ["[file-sync] #{@get('container.slug')}: #{firstMessage}"]
