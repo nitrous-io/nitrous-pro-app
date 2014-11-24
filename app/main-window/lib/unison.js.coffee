@@ -264,12 +264,15 @@ App.Unison = klass = Em.Object.extend
 
       # convert globs to Regex
       if l.indexOf("**") != -1
-        l = l.replace /\./g, "\\."
-        l = l.replace /\*/g, ".*"
+        l = @_sanitizeForRegex(l).replace /\*/g, ".*"
         unless pathMode
           # apply to all sub-directories
           ignoreList.push "Regex .*/#{l}"
         ignoreList.push "Regex #{l}"
+      else if l[l.length-1] == "/"
+        l = @_sanitizeForRegex(l)
+        ignoreList.push "Regex .*/#{l}.*"
+        ignoreList.push "Regex #{l}.*"
       else
         mode = if pathMode
           "Path"
@@ -282,6 +285,9 @@ App.Unison = klass = Em.Object.extend
     messages = ["[unison] #{@get('container.slug')}: #{firstMessage}"]
     messages.concat others
     console.log.apply console, messages
+
+  _sanitizeForRegex: (str)->
+    str.replace(/\./g, "\\.")
 
 klass.reopenClass
   killAll: (cb) ->
