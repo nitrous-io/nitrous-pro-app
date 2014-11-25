@@ -49,6 +49,7 @@ if [ $build_env == "production" ]; then
   cp "$asar_path" "$resources_path"
   mkdir -p "$resources_path"/bin
   cp -a bin/osx "$resources_path"/bin
+  cp -a images "$resources_path/images"
 
   # code sign
   sig='4A935863DFF7D879E4487FC3FE1AF30EA03FAF00'
@@ -69,6 +70,7 @@ if [ $build_env == "production" ]; then
   cp "$asar_path" "$resources_path"
   mkdir -p "$resources_path"/bin
   cp -a bin/win "$resources_path"/bin
+  cp -a images "$resources_path/images"
   echo "...Done!"
 
   echo "--> Building Linux Package..."
@@ -82,6 +84,7 @@ if [ $build_env == "production" ]; then
   cp "$asar_path" "$resources_path"
   mkdir -p "$resources_path"/bin
   cp -a bin/linux "$resources_path"/bin
+  cp -a images "$resources_path/images"
   echo "...Done!"
 else
   cp -a bin "$BUILD_DIR"

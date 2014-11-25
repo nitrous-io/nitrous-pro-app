@@ -1,6 +1,7 @@
 childProcess = require 'child_process'
 fs = require 'fs'
 path = require 'path'
+ipc = require 'ipc'
 
 UNISON_BIN_PATH = if App.platform.isWindows
   path.join(App.binPath, 'nitrous-unison.exe')
@@ -151,6 +152,7 @@ App.Unison = klass = Em.Object.extend
 
     privateKeyPath = App.get 'sshKey.privateKeyPath'
 
+    ipc.send('syncing-start')
     if App.platform.isWindows
       childProcess.execFile SHORTNAME_BIN_PATH, [privateKeyPath], (err, stdout, stderr) ->
         console.log stdout
@@ -195,6 +197,7 @@ App.Unison = klass = Em.Object.extend
       @set 'transferCount', window.parseInt(transferCount.replace(/,/g, ''), 10)
 
   processDidExit: (code, cb) ->
+    ipc.send('syncing-end')
     @_log "sync process exited with code #{code}"
     @set 'process', null
     @set 'syncing', false

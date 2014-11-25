@@ -1,6 +1,7 @@
 app = require 'app'
 ipc = require 'ipc'
 BrowserWindow = require 'browser-window'
+Tray = require('tray');
 config = require './config'
 
 MixpanelWrapper = require './lib/mixpanel-wrapper'
@@ -11,6 +12,7 @@ root.nitrous =
   loginWindow: null
   mainWindow: null
   mixPanel: null
+  tray: null
 
 app.on 'window-all-closed', ->
   nitrous.mixPanel.track 'Quit'
@@ -18,8 +20,10 @@ app.on 'window-all-closed', ->
 
 app.on 'ready', ->
   initMixpanel()
+  initTray()
 
   ipc.on 'logged-in', (event, user) ->
+    trayLoggedIn()
     nitrous.mixPanel.setUser user
     nitrous.mixPanel.track 'Logged In'
 
@@ -40,12 +44,19 @@ app.on 'ready', ->
     win.focus()
 
   ipc.on 'logged-out', (event) ->
+    trayLoggedOut()
     nitrous.mixPanel.track 'Logged Out'
     nitrous.mainWindow.close()
     initLoginWindow()
 
   ipc.on 'track', (event, arg)->
     nitrous.mixPanel.track arg.eventName, arg.data
+
+  ipc.on 'syncing-start', ->
+    traySyncing()
+
+  ipc.on 'syncing-end', ->
+    trayNotSyncing()
 
   initLoginWindow()
 
@@ -73,3 +84,23 @@ initLoginWindow = ->
     'auto-hide-menu-bar': false
   nitrous.loginWindow.on 'closed', ->
     nitrous.loginWindow = null
+
+initTray = ->
+  nitrous.tray = new Tray(config.resPath + "/images/status-item-icon-gray.png")
+  nitrous.tray.on "clicked", =>
+    (nitrous.mainWindow || nitrous.loginWindow).focus()
+
+trayLoggedIn = ->
+  _setTrayImage "status-item-icon"
+
+trayLoggedOut = ->
+  _setTrayImage "status-item-icon-gray"
+
+trayNotSyncing = ->
+  trayLoggedIn()
+
+traySyncing = ->
+  _setTrayImage "status-item-icon-syncing"
+
+_setTrayImage = (name)->
+  nitrous.tray.setImage(config.resPath + "/images/#{name}.png")
