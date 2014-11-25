@@ -1,0 +1,124 @@
+<html>
+<head>
+  <meta name="referrer" content="always">
+  <link href="node_modules/qunitjs/qunit/qunit.css" rel="stylesheet">
+  <script src="node_modules/qunitjs/qunit/qunit.js"></script>
+  <script src="node_modules/qunitjs/qunit/qunit.js"></script>
+  <script src="node_modules/qunit-bdd/lib/qunit-bdd.js"></script>
+</head>
+<body>
+
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+
+<div id="app" style="display:none"></div>
+<script src="application.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+(function() {
+  window.activeRequires = {};
+
+  Module = require('module');
+  Module.prototype.requireOrig = Module.prototype.require;
+  Module.prototype.require = function(path) {
+    if (path == "ember") {
+      return Em;
+    }
+    var req = this.requireOrig(path);
+    window.activeRequires[path] = req;
+    return req;
+  };
+
+  // Disable use of deprecated functions.
+  process.throwDeprecation = true;
+
+  // Check if we are running in CI.
+  var argv = require('remote').process.argv;
+  var isCi = argv[1] == '--ci';
+
+  if (!isCi) {
+    var win = require('remote').getCurrentWindow();
+    win.show();
+    win.focus();
+  }
+
+  // Show DevTools.
+  document.oncontextmenu = function(e) {
+    require('remote').getCurrentWindow().inspectElement(e.clientX, e.clientY);
+  }
+
+  var ipc = require('ipc');
+
+  // Rediret all output to browser.
+  if (isCi) {
+    global.__defineGetter__('console', function() {
+      return {
+        log: function() {
+          args = Array.prototype.slice.call(arguments);
+          ipc.send('console.log', args);
+        },
+        error: function() {
+          args = Array.prototype.slice.call(arguments);
+          ipc.send('console.error', args);
+        },
+      }
+    });
+  }
+
+  window.App = Ember.Application.create();
+
+  App.setupForTesting();
+  App.injectTestHelpers();
+
+  QUnit.testStart(function () {
+    Ember.run(function () { App.reset(); });
+    Ember.testing = true;
+  });
+
+  // Run after each test case.
+  QUnit.testDone(function () {
+    Ember.testing = false;
+  });
+
+  emq = require('ember-qunit')
+  emq.globalize()
+
+  QUnit.done(function () {
+    if (isCi)
+      ipc.send('process.exit', runner.failures);
+  });
+
+  window.withWindow = function(window_name, callback) {
+    Em.run(function() {
+      require("./" + window_name + "-window");
+
+      App.setupForTesting()
+      App.injectTestHelpers()
+
+      setResolver(Ember.DefaultResolver.create({namespace: App}));
+
+      callback();
+    });
+  };
+
+  // Read all test files.
+  console.log("Loading tests.......");
+  var path = require('path').normalize(__dirname + "/tests/");
+  console.log(path)
+  var walker = require('walkdir').walk(path, {
+    no_recurse: true
+  });
+
+  walker.on('file', function(file) {
+    if (/-spec.js$/.test(file)) {
+      console.log("Loading: " + file)
+      var scriptEl = document.createElement('script');
+      scriptEl.setAttribute("type","text/javascript");
+      scriptEl.setAttribute("src", file);
+      document.getElementsByTagName("head")[0].appendChild(scriptEl);
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+#!/bin/bash
+set -e
+
+atom_shell_ver=$1
+atom_shell_ver=${atom_shell_ver:='0.18.2'}
+
+TEST_DIR=./build/test
+
+cd rails
+rm -f public/index.html
+rm -rf public/assets
+rm -rf tmp/
+mkdir -p public/assets
+RACK_ENV=test bundle exec rake assets:clean assets:precompile
+cd ..
+
+rm -rf "$TEST_DIR"
+mkdir -p "$TEST_DIR"
+mv rails/public/assets/* "$TEST_DIR"
+mv "$TEST_DIR/main.js" "$TEST_DIR/main-app.js"
+cp -r test/* "$TEST_DIR"
+
+mv "$TEST_DIR/main-window/main-window.js" "$TEST_DIR/main-window.js"
+mv "$TEST_DIR/login-window/login-window.js" "$TEST_DIR/login-window.js"
+
+cd test/
+npm install
+cd ..
+
+cd "$TEST_DIR"
+../../atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app/Contents/MacOS/Atom ./

@@ -10,6 +10,9 @@ clean:
 	rm -rf build/
 	rm -rf rails/tmp
 
+test:
+	script/test $(ATOM_SHELL_VERSION)
+
 build:
 	script/build $(ENV) $(ATOM_SHELL_VERSION)
 
@@ -37,4 +40,4 @@ upload: archive
 watch: build-dev
 	watchy -w 'app,css,images,index.html.slim' -- make build-dev
 
-.PHONY: setup clean build build-dev build-prod run watch
+.PHONY: setup clean build build-dev build-prod run watch test

@@ -14,7 +14,7 @@
 path = require 'path'
 
 env = <%= "'#{ENV['RACK_ENV']}'" %>
-debug = env == 'development' || process.env.DEBUG == '1'
+debug = env == 'development' || env == 'test' || process.env.DEBUG == '1'
 
 asar = __dirname.match(/\.asar$/)?
 resPath = if asar

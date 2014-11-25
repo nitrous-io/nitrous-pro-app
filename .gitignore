@@ -9,6 +9,7 @@ tmp/
 npmdebug.log
 config.json
 ext/
+node_modules
 
 # Rails
 rails/.bundle/
