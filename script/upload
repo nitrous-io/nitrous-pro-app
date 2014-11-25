@@ -35,6 +35,7 @@ for target in ./dist/*; do
       jsonUrl="$S3_URL/$distType/app.json"
       jsonContents=`curl $jsonUrl 2>/dev/null`
       expected="\"version\": \"$thisVersion\""
+      finalUrl="$S3_URL/$distType/$foundFile"
       cdnUrl="$CFRONT_URL/$distType/$foundFile"
       if ! [ "${jsonContents/$expected}" = "$jsonContents" ] ; then
         echo "[$distType] Version $thisVersion already exists!"
@@ -46,7 +47,7 @@ for target in ./dist/*; do
         else
           fileSize=$(stat -c%s "$foundFile")
         fi
-        appJson="{ \"version\": \"$thisVersion\", \"url\": \"$cdnUrl\", \"fileSize\": $fileSize }"
+        appJson="{ \"version\": \"$thisVersion\", \"url\": \"$finalUrl\", \"fileSize\": $fileSize }"
         $s3cmdBase put -P $foundFile s3://$BUCKET_NAME/$distType/$foundFile
         tmpLoc="/tmp/$foundFile.json"
         echo $appJson > $tmpLoc
