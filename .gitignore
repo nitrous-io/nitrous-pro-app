@@ -4,7 +4,6 @@
 build/
 dist/
 atom-shell/
-Gemfile.lock
 tmp/
 npmdebug.log
 config.json
