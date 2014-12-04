@@ -10,3 +10,10 @@ Rails.application.config.assets.precompile += %w(
   lib/mixpanel.js
   config.js
 )
+
+if Rails.env.test?
+  path = Rails.root.join("app", "assets", "javascripts", "tests", "**")
+  Dir[path].each do |file|
+    Rails.application.config.assets.precompile << file
+  end
+end

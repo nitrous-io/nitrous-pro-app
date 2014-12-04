@@ -1,0 +1,19 @@
+{
+  "name": "atom-shell-specs",
+  "productName": "Atom Shell Test App",
+  "main": "main.js",
+  "version": "0.1.0",
+
+  "devDependencies": {
+    "formidable": "~1.0.14",
+    "pathwatcher": "2.x",
+    "q": "0.9.7",
+    "qunitjs": "1.15.0",
+    "qunit-bdd": "0.6.1",
+    "ember-qunit": "0.1.8",
+    "sinon": "1.12.1",
+    "runas": "1.x",
+    "temp": "~0.6.0",
+    "walkdir": "~0.0.7"
+  }
+}
