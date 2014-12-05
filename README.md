@@ -1,6 +1,13 @@
 Nitrous Pro Desktop App
 =======================
 
+### Dependencies
+
+* Xcode Command Line Tools or Xcode (OS X only) (call `xcode-select` to force install)
+* wget (available via brew)
+* bundler
+* npm (available via brew)
+
 ### Setup
 
 ```
