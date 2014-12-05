@@ -18,14 +18,14 @@ rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
 mv rails/public/assets/* "$TEST_DIR"
 mv "$TEST_DIR/main.js" "$TEST_DIR/main-app.js"
-cp -r test/* "$TEST_DIR"
-
-mv "$TEST_DIR/main-window/main-window.js" "$TEST_DIR/main-window.js"
-mv "$TEST_DIR/login-window/login-window.js" "$TEST_DIR/login-window.js"
 
 cd test/
 npm install
 cd ..
+cp -r test/* "$TEST_DIR"
+
+mv "$TEST_DIR/main-window/main-window.js" "$TEST_DIR/main-window.js"
+mv "$TEST_DIR/login-window/login-window.js" "$TEST_DIR/login-window.js"
 
 cd "$TEST_DIR"
 ../../atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app/Contents/MacOS/Atom ./
