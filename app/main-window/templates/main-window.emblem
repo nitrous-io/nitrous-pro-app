@@ -39,5 +39,5 @@ if App.hosts
 else
   .containing
     .notice
-      p You don't have any applications
-      button click='createHost' Create a new application
+      p You don't have any workspaces
+      button click='createHost' Create a new workspace
