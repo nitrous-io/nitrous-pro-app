@@ -158,7 +158,7 @@ App.FileSync = klass = Em.Object.extend
       @performSync()
     watcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
     watcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
-    @set 'remoteWatcher', remoteWatcher = new App.Watcher('~/workspace', ssh: sshUrl)
+    @set 'remoteWatcher', remoteWatcher = new App.Watcher(@container.get('syncPath'), ssh: sshUrl)
     remoteWatcher.on 'change', (change) =>
       @_log "detected remote fs change at #{change}"
       @performSync =>

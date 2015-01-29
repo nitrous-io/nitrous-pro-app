@@ -63,7 +63,7 @@ klass = class App.Watcher extends EventEmitter
         '-i', privateKeyPath
         host
         REMOTE_WATCHER_BIN_PATH
-        '/home/action/workspace'
+        @path
       ]
       childProcess.spawn SSH_BIN_PATH, sshArgs, detached: false
     else

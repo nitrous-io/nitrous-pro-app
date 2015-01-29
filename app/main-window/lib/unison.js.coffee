@@ -68,8 +68,9 @@ App.Unison = klass = Em.Object.extend
     @set 'syncing', true
 
     sshUrl = @get 'container.sshUrl'
+    containerSyncPath = @get 'container.syncPath'
     syncPath = @get 'syncPath'
-    remotePath = "#{sshUrl}/workspace"
+    remotePath = "#{sshUrl}/#{containerSyncPath}"
 
     nullFile = if App.platform.isWindows
       'NUL'

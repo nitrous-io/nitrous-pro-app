@@ -6,6 +6,7 @@ App.Container = klass = Em.Object.extend
   id: null
   cid: null
   name: null
+  user: null
   slug: null
   state: null
   image: null
@@ -101,6 +102,24 @@ App.Container = klass = Em.Object.extend
     "http://#{hostname}:#{port}"
   ).property 'host.hostname', 'previewPort'
 
+  loginUsername: (->
+    u = @get('envVarHash')?["NITROUS_USERNAME"] || @get('user')
+    if u == ""
+      return "root"
+    u
+  ).property 'envVarHash'
+
+  syncPath: (->
+    if (p = @get('envVarHash.NITROUS_IMAGE_VERSION'))
+      "/home/#{@get 'loginUsername'}/code"
+    else
+      username = @get 'loginUsername'
+      if username == "root"
+        "/"
+      else
+        "/home/#{username}"
+  ).property 'envVarHash', 'loginUsername'
+
   applyFromJsonObject: (c)->
     @setProperties
       id: c.id
@@ -111,6 +130,7 @@ App.Container = klass = Em.Object.extend
       image: c.image
       hostId: c.host_id
       previewHostname: c.preview_hostname
+      user: c.user
 
   refreshConfig: ->
     ajax(
