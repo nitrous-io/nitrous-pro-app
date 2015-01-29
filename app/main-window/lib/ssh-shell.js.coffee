@@ -46,6 +46,10 @@ App.SSHShell = Em.Object.extend
     @waitTimeout = window.setTimeout(=>
       @_testTimedOut()
     , 60000)
+    if false && @proc.exitCode == 255
+      @_cancelTimeout()
+      console.log "Unable to launch shell, server not available."
+
     @proc.stdout.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
     @proc.stderr.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
 
@@ -77,19 +81,23 @@ App.SSHShell = Em.Object.extend
       @_cancelTimeout()
 
       if @get('attemptedUpload')
-        window.alert("Unable to launch console, service rejected uploaded key")
+        window.alert("Unable to launch shell, service rejected uploaded key")
         return @set('attemptedUpload', false)
 
       App.get('sshKey').upload @get('container'), (err) =>
         @set('attemptedUpload', true)
         if err
-          window.alert("Unable to launch console, key upload failed")
+          window.alert("Unable to launch shell, key upload failed")
         else
           @_testAndLaunch()
+    else if decoded.indexOf("Operation timed out") != -1
+      @_cancelTimeout()
+
+      window.alert("Unable to launch shell, server failed to respond")
     else if decoded.indexOf("Could not resolve") != -1
       @_cancelTimeout()
 
-      window.alert("Unable to launch console, server address not found")
+      window.alert("Unable to launch shell, server address not found")
 
   _cancelTimeout: ->
     if @waitTimeout
@@ -98,4 +106,4 @@ App.SSHShell = Em.Object.extend
   _testTimedOut: ->
     if @proc
       @proc.kill('SIGKILL')
-    window.alert "Unable to launch console, timed out"
+    window.alert "Unable to launch shell, timed out. Server may not be responding"
