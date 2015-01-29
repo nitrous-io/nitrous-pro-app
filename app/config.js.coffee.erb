@@ -4,7 +4,7 @@
     host = 'https://pro.nitrous.io'
     signup_url = host + '/'
   else
-    host = 'https://pro.n2ostaging.com'
+    host = ENV["CUSTOM_ENDPOINT"] || 'https://pro.n2ostaging.com'
     signup_url = host + '/'
   end
 
