@@ -10,6 +10,7 @@ App.Container = klass = Em.Object.extend
   state: null
   image: null
   hostId: null
+  previewHostname: null
 
   syncEnabled: false
 
@@ -64,13 +65,18 @@ App.Container = klass = Em.Object.extend
     @get('envVarHash.NITROUS_SSH_ENABLED') == "true"
   ).property 'envVarHash.NITROUS_SSH_ENABLED'
 
-  sshPort: (->
-    port = null
+  parsedPorts: (->
+    ports = {}
     if portBindings = @get 'config.port'
       for portBinding in portBindings
-        break if port = portBinding.match(/^public:(.+):22(\/tcp)?$/)?[1]
-    port
+        if portMatch = portBinding.match(/^(public|private):(\d+):(\d+)(\/tcp)?$/)
+          ports["#{portMatch[1]}:#{portMatch[3]}"] = portMatch[2]
+    ports
   ).property 'config.port.@each'
+
+  sshPort: (->
+    @get('parsedPorts')?["public:22"]
+  ).property 'parsedPorts'
 
   sshUrl: (->
     sshUsername = @get 'sshUsername'
@@ -88,8 +94,9 @@ App.Container = klass = Em.Object.extend
   ).property 'envVarHash.NITROUS_PREVIEW_PORT'
 
   previewUrl: (->
-    hostname = @get 'host.hostname'
-    port = @get 'previewPort'
+    hostname = @get 'previewHostname'
+    port = @getWithDefault 'previewPort', 3000
+    return unless @get('parsedPorts')?["public:#{port}"]
     return unless hostname && port
     "http://#{hostname}:#{port}"
   ).property 'host.hostname', 'previewPort'
@@ -103,6 +110,7 @@ App.Container = klass = Em.Object.extend
       state: c.state
       image: c.image
       hostId: c.host_id
+      previewHostname: c.preview_hostname
 
   refreshConfig: ->
     ajax(
