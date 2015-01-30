@@ -61,7 +61,7 @@ App.Container = klass = Em.Object.extend
   ).property 'envVarHash.NITROUS_IMAGE_VERSION'
 
   fileSyncSupported: (->
-    @get('imageVersion') && @get('imageVersion') >= 1 && @get('sshAccessSupported')
+    @get('imageVersion') && @get('imageVersion') >= 1 && @get('sshAccessSupported') && @get('syncPath')
   ).property 'imageVersion', 'sshAccessSupported'
 
   sshAccessSupported: (->
@@ -113,14 +113,12 @@ App.Container = klass = Em.Object.extend
   ).property 'envVarHash'
 
   syncPath: (->
-    if (p = @get('envVarHash.NITROUS_IMAGE_VERSION'))
+    if (r = @get('envVarHash.NITROUS_ROOT_SYNC'))
+      r
+    else if @get('loginUsername') != "root" && (p = @get('envVarHash.NITROUS_IMAGE_VERSION'))
       "/home/#{@get 'loginUsername'}/code"
     else
-      username = @get 'loginUsername'
-      if username == "root"
-        "/"
-      else
-        "/home/#{username}"
+      null
   ).property 'envVarHash', 'loginUsername'
 
   applyFromJsonObject: (c)->
