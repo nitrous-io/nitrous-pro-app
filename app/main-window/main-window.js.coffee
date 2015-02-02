@@ -133,10 +133,12 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
 window.App = klass.create()
 
 $(window).on 'online', ->
+  ipc.send 'online'
   App.set 'online', true
   App.loadEventsSocket()
 
 $(window).on 'offline', ->
+  ipc.send 'offline'
   App.set 'online', false
   App.unloadEventsSocket()
 

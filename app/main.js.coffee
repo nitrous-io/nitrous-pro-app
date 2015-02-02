@@ -58,6 +58,12 @@ app.on 'ready', ->
   ipc.on 'syncing-end', ->
     trayNotSyncing()
 
+  ipc.on 'offline', ->
+    trayOffline()
+
+  ipc.on 'online', ->
+    trayOnline()
+
   initLoginWindow()
 
 initMixpanel = ->
@@ -94,6 +100,12 @@ trayLoggedIn = ->
   _setTrayImage "status-item-icon"
 
 trayLoggedOut = ->
+  _setTrayImage "status-item-icon-gray"
+
+trayOnline = ->
+  _setTrayImage "status-item-icon"
+
+trayOffline = ->
   _setTrayImage "status-item-icon-gray"
 
 trayNotSyncing = ->
