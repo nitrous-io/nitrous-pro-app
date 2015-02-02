@@ -274,9 +274,10 @@ App.Unison = klass = Em.Object.extend
           ignoreList.push "Regex .*/#{l}"
         ignoreList.push "Regex #{l}"
       else if l[l.length-1] == "/"
-        l = @_sanitizeForRegex(l)
-        ignoreList.push "Regex .*/#{l}.*"
-        ignoreList.push "Regex #{l}.*"
+        san = @_sanitizeForRegex(l)
+        ignoreList.push "Regex .*/#{san}.*"
+        ignoreList.push "Regex #{san}.*"
+        ignoreList.push "Path #{l[0..(l.length-2)]}"
       else
         mode = if pathMode
           "Path"
