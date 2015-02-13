@@ -62,8 +62,9 @@ klass = class App.Watcher extends EventEmitter
         '-t'
         '-i', privateKeyPath
         host
-        REMOTE_WATCHER_BIN_PATH
-        @path
+        "/bin/bash"
+        "-c"
+        "echo \"starting..\"; killall nitrous-watcher; /nitrous/nitrous-watcher /home/nitrous/code"
       ]
       childProcess.spawn SSH_BIN_PATH, sshArgs, detached: false
     else
@@ -74,7 +75,7 @@ klass = class App.Watcher extends EventEmitter
       p
 
     startedWatchers.push(this)
-    console.log "Starting watcher, remote:", @ssh != null
+    @_log "Starting watcher, remote:", @ssh != null
     @proc.stdout.on 'data', (data) => @_processOutput(data)
     @proc.stderr.on 'data', (data) => @_processOutput(data)
     @proc.on 'exit', (code) => @_processDidQuit(code)
@@ -93,6 +94,7 @@ klass = class App.Watcher extends EventEmitter
 
   _processOutput: (data) ->
     data = data.toString('utf8')
+    @_log data
     if match = data.match /^Change\(.+\): (.+)$/m
       if fileName = match[1]
         filePath = path.join(@path, fileName)
@@ -108,7 +110,7 @@ klass = class App.Watcher extends EventEmitter
     return if @expectingStop
 
     @badState = true
-    console.log 'Unexpected quit, restarting'
+    @_log 'Unexpected quit, restarting'
     @emit 'watcherRestarting', this
     @quitRestarter = window.setTimeout(=>
       @quitRestarter = null
@@ -119,6 +121,11 @@ klass = class App.Watcher extends EventEmitter
     if @quitRestarter
       window.clearTimeout @quitRestarter
       return
+
+  _log: (firstMessage, others...) ->
+    messages = ["[watcher] #{firstMessage}"]
+    messages.concat others
+    console.log.apply console, messages
 
 klass.stopAll = ->
   knownWatchers = startedWatchers.slice 0
