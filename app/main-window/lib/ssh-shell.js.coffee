@@ -22,7 +22,7 @@ App.SSHShell = Em.Object.extend
   startShell: (container) ->
     @set('container', container)
     @set('sshUser', container.get('sshUsername'))
-    @set('hostname', container.get('host.hostname'))
+    @set('hostAddress', container.get('host.ipAddress'))
     @set('port', container.get('sshPort'))
     @set('privateKeyPath', App.get 'sshKey.privateKeyPath')
 
@@ -37,7 +37,7 @@ App.SSHShell = Em.Object.extend
       '-o', 'LogLevel=FATAL'
       '-p', @get('port')
       '-i', @get('privateKeyPath')
-      "#{@get('sshUser')}@#{@get('hostname')}"
+      "#{@get('sshUser')}@#{@get('hostAddress')}"
     ]
 
     testSSHArgs = baseSshArgs.concat ["echo nitrous-success"]

@@ -84,11 +84,11 @@ App.Container = klass = Em.Object.extend
 
   sshUrl: (->
     sshUsername = @get 'sshUsername'
-    hostname = @get 'host.hostname'
+    hostAddress = @get 'host.ipAddress'
     sshPort = @get 'sshPort'
-    return unless sshUsername && hostname && sshPort
-    "ssh://#{sshUsername}@#{hostname}:#{sshPort}"
-  ).property 'sshUsername', 'host.hostname', 'sshPort'
+    return unless sshUsername && hostAddress && sshPort
+    "ssh://#{sshUsername}@#{hostAddress}:#{sshPort}"
+  ).property 'sshUsername', 'host.ipAddress', 'sshPort'
 
   previewPort: (->
     return null unless port = @get 'envVarHash.NITROUS_PREVIEW_PORT'
