@@ -4,6 +4,7 @@ config = require '../config'
 module.exports = class MixpanelWrapper
   constructor: (token) ->
     @mixPanel = Mixpanel.init token
+    @distinctId = null
 
   track: (event_name, data) ->
     if config.env == "development"
@@ -11,6 +12,7 @@ module.exports = class MixpanelWrapper
     data = {} unless data
     data.appVersion = config.version
     data.platform = process.platform
+    data.distinct_id = @distinctId
     if @userEmail
       data.email = @userEmail
     if @userAdmin != null
@@ -22,6 +24,7 @@ module.exports = class MixpanelWrapper
        return console.log "[mix-panel] user '#{user.email}' in development"
     @userEmail = user.email
     @userAdmin = user.admin
+    @distinctId = user.username
     @mixPanel.people.set user.username,
       $username: user.username
       $email: @userEmail
