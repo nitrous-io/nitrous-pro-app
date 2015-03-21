@@ -162,8 +162,6 @@ App.on 'app-did-load', ->
   App.Router.map ->
     @route 'main-window', path: '/'
 
-  App.loadEventsSocket()
-
 App.on 'log-out', ->
   App.get('fileSyncTracker').flush()
   App.set('fileSyncTracker.loaded', false)

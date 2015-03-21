@@ -22,7 +22,14 @@ klass = class App.Watcher extends EventEmitter
     options ?= {}
     @ignore = options.ignore ? ['.unison', '.git', '.svn', '.hg', 'CVS', '.DS_Store', 'Thumbs.db', 'Desktop.ini', 'tmp/sockets', 'tmp/pids', 'tmp/sessions', 'tmp/cache']
     @delay = options.delay ? 100
-    @ssh = options.ssh ? false
+    @ssh = if options.container
+      new App.SSH(options.container,
+        cmd: "killall nitrous-watcher; /nitrous/nitrous-watcher /home/nitrous/code"
+        onData: (data)=>
+          @_processOutput(data)
+        onRestarting: ()=>
+          @_handleWatcherRestarting()
+      )
     @notifyTimeout = null
 
   _shouldIgnore: (filePath) ->
@@ -49,54 +56,35 @@ klass = class App.Watcher extends EventEmitter
     @stop() if @proc
     @expectingStop = false
 
-    @proc = if @ssh
-      privateKeyPath = App.get 'sshKey.privateKeyPath'
-      if App.platform.isWindows
-        privateKeyPath = @_getWindowsShortNames(privateKeyPath)
-
-      [host, port] = @ssh.slice(6).split(':')
-
-      nullFile = if App.platform.isWindows
-        'NUL'
-      else
-        '/dev/null'
-
-      sshArgs = [
-        '-o', "UserKnownHostsFile=#{nullFile}"       # ignore known hosts
-        '-o', 'StrictHostKeyChecking=no'           # no host key checking
-        '-o', 'PreferredAuthentications=publickey' # pub key authentication only
-        '-p', port
-        '-t'
-        '-t'
-        '-i', privateKeyPath
-        host
-        "/bin/bash"
-        "-c"
-        "echo \"starting..\"; killall nitrous-watcher; /nitrous/nitrous-watcher /home/nitrous/code"
-      ]
-      childProcess.spawn SSH_BIN_PATH, sshArgs, detached: false
+    if @ssh
+      @ssh.start()
     else
-      p = childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
-      if @badState
-        @badState = false
-        @emit 'watcherRestored', this
-      p
+      @proc = childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
+
+      @_log "Starting local watcher"
+      @proc.stdout.on 'data', (data) => @_processOutput(data)
+      @proc.stderr.on 'data', (data) => @_processOutput(data)
+      @proc.on 'exit', (code) => @_processDidQuit(code)
+
+    if @badState
+      @badState = false
+      @emit 'watcherRestored', this
 
     startedWatchers.push(this)
-    @_log "Starting watcher, remote:", @ssh != null
-    @proc.stdout.on 'data', (data) => @_processOutput(data)
-    @proc.stderr.on 'data', (data) => @_processOutput(data)
-    @proc.on 'exit', (code) => @_processDidQuit(code)
 
   stop: ->
     @expectingStop = true
     @_clearNotifyTimeout()
     @_clearQuitRestarter()
-    if @proc
+
+    if @ssh
+      @ssh.stop()
+    else if @proc
       @proc.stdout.removeAllListeners()
       @proc.stderr.removeAllListeners()
       @proc.kill()
       @proc = undefined
+
     index = startedWatchers.indexOf(this)
     startedWatchers.splice(index, 1) if index != -1
 
@@ -117,13 +105,16 @@ klass = class App.Watcher extends EventEmitter
   _processDidQuit: (code) ->
     return if @expectingStop
 
-    @badState = true
     @_log 'Unexpected quit, restarting'
-    @emit 'watcherRestarting', this
+    @_handleWatcherRestarting()
     @quitRestarter = window.setTimeout(=>
       @quitRestarter = null
       @start()
-    , 5000)
+    , 100)
+
+  _handleWatcherRestarting: ->
+    @badState = true
+    @emit 'watcherRestarting', this
 
   _clearQuitRestarter: ->
     if @quitRestarter

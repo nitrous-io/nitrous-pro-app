@@ -13,8 +13,10 @@ Rails.application.config.assets.precompile += %w(
 )
 
 if Rails.env.test?
-  path = Rails.root.join("app", "assets", "javascripts", "tests", "**")
-  Dir[path].each do |file|
-    Rails.application.config.assets.precompile << file
+  ["login", "main"].each do |grp|
+    path = Rails.root.join("app", "assets", "javascripts", "tests", grp, "**")
+    Dir[path].each do |file|
+      Rails.application.config.assets.precompile << file
+    end
   end
 end

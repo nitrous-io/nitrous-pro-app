@@ -85,13 +85,16 @@
         max-height: 0
         transition: max-height .3s
 
+      .container-settings
+        position: absolute
+
       &.selected
         .container-name
           background: $selectedBgColor
           color: white
 
         .container-details
-          max-height: 100px
+          max-height: 200px
           background: $selectedBgColor
           box-shadow: inset 0 -1px 0 lighten($selectedBgColor, 8%)
 

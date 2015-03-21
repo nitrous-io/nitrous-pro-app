@@ -36,6 +36,17 @@ if App.hosts
                         button click='openSSHShell App.selectedContainer' Shell
                       if previewUrl
                         button click='openPreview App.selectedContainer' Preview
+                .content
+                  label Port Forwarding
+                  = ui-switch enabled=true
+                  ul
+                    li
+                      | 3306
+                    li
+                      | 8080
+                    li
+                      | 139
+
 else
   .containing
     .notice

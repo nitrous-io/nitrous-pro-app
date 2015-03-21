@@ -64,6 +64,8 @@
     });
   }
 
+  window.DATA = {username: "testing"};
+
   window.App = Ember.Application.create();
 
   App.setupForTesting();
@@ -102,13 +104,11 @@
 
   // Read all test files.
   console.log("Loading tests.......");
-  var path = require('path').normalize(__dirname + "/tests/");
+  var path = require('path').normalize(__dirname + "/tests/main/");
   console.log(path)
-  var walker = require('walkdir').walk(path, {
-    no_recurse: true
-  });
+  var walk = require('walkdir');
 
-  walker.on('file', function(file) {
+  walk.sync(path, function(file) {
     if (/-spec.js$/.test(file)) {
       console.log("Loading: " + file)
       var scriptEl = document.createElement('script');
