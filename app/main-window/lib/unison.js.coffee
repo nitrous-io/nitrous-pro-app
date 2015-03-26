@@ -84,6 +84,11 @@ App.Unison = klass = Em.Object.extend
         '-o', 'PreferredAuthentications=publickey' # pub key authentication only
         '-i', privateKeyPath
       ]
+      sshBin = SSH_BIN_PATH
+      if App.platform.isWindows
+        @_log "Converting path #{sshBin}"
+        sshBin = @_getWindowsShortNames(sshBin)
+        @_log "to short path #{sshBin}"
 
       args = [
         syncPath
@@ -102,7 +107,7 @@ App.Unison = klass = Em.Object.extend
         '-prefer', remotePath
         '-terse' # reduce output
         '-servercmd', '/nitrous/nitrous-unison'
-        '-sshcmd', SSH_BIN_PATH
+        '-sshcmd', sshBin
       ]
 
       if syncOnly = @get 'syncOnly'
@@ -293,6 +298,13 @@ App.Unison = klass = Em.Object.extend
 
   _sanitizeForRegex: (str)->
     str.replace(/\./g, "\\.")
+
+  _getWindowsShortNames: (path)->
+    unless path.match(/\s/)
+      return path
+    cmd = "cmd /c for %A in (\"#{path}\") do @echo %~sA"
+    data = childProcess.execSync(cmd)
+    data.toString("utf-8").trim()
 
 klass.reopenClass
   killAll: (cb) ->
