@@ -47,6 +47,8 @@ App.FileSync = klass = Em.Object.extend
     if @get('enabled') && @get('container.state') == 'running' && App.get('online') && @get('hostPath') && @get('syncPath') && @get('container.sshUrl')
       @startWatcher()
     else
+      if @get("enabled") && !App.get("online")
+        return # we do not want to shut down the sync utility during a network interruption
       @stopWatcher()
   ).observes 'enabled', 'container.state', 'App.online', 'hostPath', 'syncPath', 'container.sshUrl'
 
