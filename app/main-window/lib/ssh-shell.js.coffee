@@ -62,7 +62,8 @@ App.SSHShell = Em.Object.extend
 
       # invoke SSH interactively
       if App.platform.isWindows
-        App.mintty.ssh(@get('sshUser'), @get('hostname'), @get('port'), @get('container.displayName'), @get('privateKeyPath'))
+        console.log "Starting mintty for Windows"
+        App.mintty.ssh(@get('sshUser'), @get('hostAddress'), @get('port'), @get('container.displayName'), @get('privateKeyPath'))
       else
         sshArgs.unshift SSH_BIN_PATH
         identityLoc = sshArgs.indexOf('-i') + 1
