@@ -2,6 +2,14 @@ ipc = require 'ipc'
 config = require './config'
 ajax = require './lib/ajax'
 shell = require 'shell'
+remote = require 'remote'
+dialog = remote.require 'dialog'
+
+allowedBillingStates = [
+  'payment_due',
+  'paid',
+  'exempt'
+]
 
 App.LoginWindowController = Em.Controller.extend
   loggingIn: false
@@ -19,7 +27,19 @@ App.LoginWindowController = Em.Controller.extend
     ajax(
       type: 'GET'
       url: '/api/v0/user'
-    ).then (res) ->
+    ).then (res) =>
+      paid = allowedBillingStates.indexOf(res.user.billing_profile.state) != -1
+      if !paid
+        @set 'loggingIn', false
+        dialog.showMessageBox remote.getCurrentWindow(),
+          type: "warning",
+          buttons: ["Upgrade", "Cancel"],
+          title: "Please upgrade to use Nitrous Desktop",
+          message: "The Nitrous Desktop application is only available to paying users, please click below to find out more."
+        , (indx)=>
+          if indx == 0
+            shell.openExternal(config.upgradeUrl)
+        return
       user = res.user
       ipc.send 'logged-in', user
     , (jqxhr) =>
