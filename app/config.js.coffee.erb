@@ -3,9 +3,11 @@
   when 'production'
     host = 'https://pro.nitrous.io'
     signup_url = host + '/'
+    upgrade_url = host + '/'
   else
     host = ENV["CUSTOM_ENDPOINT"] || 'https://pro.n2ostaging.com'
     signup_url = host + '/'
+    upgrade_url = host + '/'
   end
 
   puts "App VERSION: #{File.read(File.join(File.dirname(__FILE__), "..", "VERSION"))}"
@@ -31,6 +33,7 @@ appPath = switch process.platform
 module.exports =
   host: debug && process.env.DEBUG_HOST || <%= "'#{host}'" %>
   signUpUrl: <%= "'#{signup_url}'" %>
+  upgradeUrl: <%= "'#{upgrade_url}'" %>
   env: env
   debug: debug
   asar: asar
