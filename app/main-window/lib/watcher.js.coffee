@@ -50,11 +50,18 @@ klass = class App.Watcher extends EventEmitter
 
     @proc = if @ssh
       privateKeyPath = App.get 'sshKey.privateKeyPath'
+      if App.platform.isWindows
+        privateKeyPath = @_getWindowsShortNames(privateKeyPath)
 
       [host, port] = @ssh.slice(6).split(':')
 
+      nullFile = if App.platform.isWindows
+        'NUL'
+      else
+        '/dev/null'
+
       sshArgs = [
-        '-o', 'UserKnownHostsFile=/dev/null'       # ignore known hosts
+        '-o', "UserKnownHostsFile=#{nullFile}"       # ignore known hosts
         '-o', 'StrictHostKeyChecking=no'           # no host key checking
         '-o', 'PreferredAuthentications=publickey' # pub key authentication only
         '-p', port
@@ -126,6 +133,13 @@ klass = class App.Watcher extends EventEmitter
     messages = ["[watcher] #{firstMessage}"]
     messages.concat others
     console.log.apply console, messages
+
+  _getWindowsShortNames: (path)->
+    unless path.match(/\s/)
+      return path
+    cmd = "cmd /c for %A in (\"#{path}\") do @echo %~sA"
+    data = childProcess.execSync(cmd)
+    data.toString("utf-8").trim()
 
 klass.stopAll = ->
   knownWatchers = startedWatchers.slice 0

@@ -157,14 +157,11 @@ App.Unison = klass = Em.Object.extend
         proc.on 'exit', (code) => @processDidExit(code, cb)
 
     privateKeyPath = App.get 'sshKey.privateKeyPath'
+    if App.platform.isWindows
+      privateKeyPath = @_getWindowsShortNames(privateKeyPath)
 
     ipc.send('syncing-start')
-    if App.platform.isWindows
-      childProcess.execFile SHORTNAME_BIN_PATH, [privateKeyPath], (err, stdout, stderr) ->
-        console.log stdout
-        invokeUnison(stdout)
-    else
-      invokeUnison(privateKeyPath.replace(/\ /g, '\\ '))
+    invokeUnison(privateKeyPath.replace(/\ /g, '\\ '))
 
   handleProcessOutput: (data) ->
     data = data.toString('utf8')
