@@ -2,6 +2,7 @@ childProcess = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 ipc = require 'ipc'
+logger = require './lib/logger'
 
 UNISON_BIN_PATH = if App.platform.isWindows
   path.join(App.binPath, 'nitrous-unison.exe')
@@ -291,7 +292,7 @@ App.Unison = klass = Em.Object.extend
   _log: (firstMessage, others...) ->
     messages = ["[unison] #{@get('container.slug')}: #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages
 
   _sanitizeForRegex: (str)->
     str.replace(/\./g, "\\.")

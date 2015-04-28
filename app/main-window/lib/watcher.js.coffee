@@ -1,6 +1,7 @@
 EventEmitter = require('events').EventEmitter
 childProcess = require 'child_process'
 path = require 'path'
+logger = require './lib/logger'
 
 WATCHER_BIN_PATH = if App.platform.isWindows
   path.join(App.binPath, 'nitrous-watcher.exe')
@@ -132,7 +133,7 @@ klass = class App.Watcher extends EventEmitter
   _log: (firstMessage, others...) ->
     messages = ["[watcher] #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages
 
   _getWindowsShortNames: (path)->
     unless path.match(/\s/)

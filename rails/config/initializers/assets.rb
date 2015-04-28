@@ -8,6 +8,7 @@ Rails.application.config.assets.precompile += %w(
   lib/ajax.js
   lib/mixpanel-wrapper.js
   lib/mixpanel.js
+  lib/logger.js
   config.js
 )
 
