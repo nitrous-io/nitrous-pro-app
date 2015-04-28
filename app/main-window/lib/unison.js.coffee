@@ -16,7 +16,7 @@ else
 
 SHORTNAME_BIN_PATH = path.join(App.binPath, 'shortname.bat')
 
-IGNORE_LIST = 'Name {.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
+IGNORE_LIST = 'Name {.bundler,.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
 IGNORE_FOLDERS = 'Path {*/tmp/sessions,*/tmp/cache,*/tmp/pids,*/tmp/sockets}'
 
 App.Unison = klass = Em.Object.extend
