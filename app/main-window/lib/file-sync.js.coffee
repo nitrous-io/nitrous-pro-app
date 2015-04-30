@@ -2,6 +2,7 @@ fs = require 'fs'
 path = require 'path'
 shell = require 'shell'
 ipc = require 'ipc'
+logger = require './lib/logger'
 
 NITROUS_FOLDER_PATH = path.join(App.homePath, 'Nitrous')
 
@@ -198,7 +199,7 @@ App.FileSync = klass = Em.Object.extend
   _log: (firstMessage, others...) ->
     messages = ["[file-sync] #{@get('container.slug')}: #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages
 
   performSync: (cb) ->
     return unless @get 'started'

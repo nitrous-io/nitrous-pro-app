@@ -4,6 +4,7 @@ fs           = require 'fs'
 https        = require 'https'
 url          = require 'url'
 childProcess = require 'child_process'
+logger = require './lib/logger'
 
 UPDATE_CHECK_INTERVAL = 6 * 60 * 60 * 1000  # 6 hours
 CHECK_RETRY_LIMIT = 5
@@ -146,6 +147,15 @@ App.Updater = Em.Object.extend
           'user-agent': window.navigator.userAgent
           accept: '*/*'
 
+      success = false
+
+      writeStream.on 'finish', =>
+        return unless success
+        fs.rename tempDownloadPath, @downloadPath, =>
+          @_log 'Download Finished'
+          @set 'downloading', false
+          @installUpdate()
+
       request = https.request options, (res) =>
         contentLength = window.parseInt res.headers['content-length'], 10
         @_log "#{res.statusCode}, Length: #{contentLength} bytes"
@@ -163,11 +173,8 @@ App.Updater = Em.Object.extend
           @set 'downloadedBytes', @get('downloadedBytes') + chunk.length
 
         res.on 'end', =>
+          success = true
           writeStream.end()
-          fs.rename tempDownloadPath, @downloadPath, =>
-            @_log 'Download Finished'
-            @set 'downloading', false
-            @installUpdate()
 
       request.on 'error', (err) =>
         request.abort()
@@ -215,6 +222,8 @@ App.Updater = Em.Object.extend
         childProcess.spawn 'cmd.exe', args, options
       else
         args.unshift UPDATE_SCRIPT_PATH
+        if App.platform.isMac
+          args.unshift path.join(App.binPath, "nitrous-update-invoker.sh")
         childProcess.spawn '/bin/bash', args, options
 
       Em.run.next ->
@@ -228,7 +237,6 @@ App.Updater = Em.Object.extend
       aPatch.localeCompare(bPatch)
 
   _log: (firstMessage, others...) ->
-    return unless config.debug
     messages = ["[updater] #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages

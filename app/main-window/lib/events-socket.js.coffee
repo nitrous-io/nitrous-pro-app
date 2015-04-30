@@ -1,6 +1,7 @@
 #= require ./socket/socket
 
 config = require './config'
+logger = require './lib/logger'
 
 App.EventsSocket = App.Socket.extend
   init: ->
@@ -61,7 +62,6 @@ App.EventsSocket = App.Socket.extend
       cb()
 
   _log: (firstMessage, others...) ->
-    return unless config.debug
     messages = ["[events] #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages

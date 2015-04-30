@@ -6,6 +6,7 @@ path = require 'path'
 childProcess = require 'child_process'
 ipc = require 'ipc'
 config = require './config'
+logger = require './lib/logger'
 
 remote = require 'remote'
 mainApp = remote.require 'app'
@@ -125,10 +126,9 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
       @refreshingContainers = false
 
   _log: (firstMessage, others...) ->
-    return unless config.debug
     messages = ["[main-window] #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages
 
 window.App = klass.create()
 
@@ -145,6 +145,8 @@ $(window).on 'offline', ->
 fs.mkdirSync(App.dataPath, '0755') unless fs.existsSync(App.dataPath)
 fs.mkdirSync(App.usersDataPath, '0755') unless fs.existsSync(App.usersDataPath)
 fs.mkdirSync(App.userDataPath, '0755') unless fs.existsSync(App.userDataPath)
+
+logger.setLogPath(App.dataPath)
 
 App.on 'app-did-load', ->
   App.set 'fileSyncTracker', tracker = App.FileSyncTracker.create()

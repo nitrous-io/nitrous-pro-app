@@ -2,6 +2,7 @@ childProcess = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 ipc = require 'ipc'
+logger = require './lib/logger'
 
 UNISON_BIN_PATH = if App.platform.isWindows
   path.join(App.binPath, 'nitrous-unison.exe')
@@ -15,7 +16,7 @@ else
 
 SHORTNAME_BIN_PATH = path.join(App.binPath, 'shortname.bat')
 
-IGNORE_LIST = 'Name {.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
+IGNORE_LIST = 'Name {.bundler,.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
 IGNORE_FOLDERS = 'Path {*/tmp/sessions,*/tmp/cache,*/tmp/pids,*/tmp/sockets}'
 
 App.Unison = klass = Em.Object.extend
@@ -291,7 +292,7 @@ App.Unison = klass = Em.Object.extend
   _log: (firstMessage, others...) ->
     messages = ["[unison] #{@get('container.slug')}: #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages
 
   _sanitizeForRegex: (str)->
     str.replace(/\./g, "\\.")

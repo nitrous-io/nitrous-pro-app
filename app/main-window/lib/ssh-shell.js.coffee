@@ -1,5 +1,6 @@
 path = require 'path'
 childProcess = require 'child_process'
+logger = require './lib/logger'
 
 LAUNCH_BIN_PATH = if App.platform.isLinux
   path.join(App.binPath, "xdg-terminal")
@@ -48,21 +49,21 @@ App.SSHShell = Em.Object.extend
     , 60000)
     if false && @proc.exitCode == 255
       @_cancelTimeout()
-      console.log "Unable to launch shell, server not available."
+      @_log "Unable to launch shell, server not available."
 
     @proc.stdout.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
     @proc.stderr.on 'data', (data) => @_handleTestShell(baseSshArgs, data)
 
   _handleTestShell: (sshArgs, data) ->
     decoded = data.toString('utf8')
-    console.log decoded
+    @_log decoded
 
     if decoded.indexOf("nitrous-success") != -1
       @_cancelTimeout()
 
       # invoke SSH interactively
       if App.platform.isWindows
-        console.log "Starting mintty for Windows"
+        @_log "Starting mintty for Windows"
         App.mintty.ssh(@get('sshUser'), @get('hostAddress'), @get('port'), @get('container.displayName'), @get('privateKeyPath'))
       else
         sshArgs.unshift SSH_BIN_PATH
@@ -76,7 +77,7 @@ App.SSHShell = Em.Object.extend
         if App.platform.isLinux
           sshArgs = [sshArgs.join(" ")]
 
-        console.log LAUNCH_BIN_PATH + " " + sshArgs.join " "
+        @_log LAUNCH_BIN_PATH + " " + sshArgs.join " "
         childProcess.spawn LAUNCH_BIN_PATH, sshArgs, detached: false
     else if decoded.indexOf("Permission denied") != -1
       @_cancelTimeout()
@@ -108,3 +109,8 @@ App.SSHShell = Em.Object.extend
     if @proc
       @proc.kill('SIGKILL')
     window.alert "Unable to launch shell, timed out. Server may not be responding"
+
+  _log: (firstMessage, others...) ->
+    messages = ["[ssh-shell] #{firstMessage}"]
+    messages.concat others
+    logger.log messages

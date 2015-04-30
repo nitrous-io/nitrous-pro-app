@@ -1,4 +1,5 @@
 config = require './config'
+logger = require './lib/logger'
 
 LOCALSTORAGE_KEY = 'fileSyncEnabled'
 App.FileSyncTracker = Em.Object.extend
@@ -56,7 +57,6 @@ App.FileSyncTracker = Em.Object.extend
   ).observes 'App.containers.@each', 'enabledContainers.@each', 'loaded'
 
   _log: (firstMessage, others...) ->
-    return unless config.debug
     messages = ["[file-sync-tracker] #{firstMessage}"]
     messages.concat others
-    console.log.apply console, messages
+    logger.log messages
