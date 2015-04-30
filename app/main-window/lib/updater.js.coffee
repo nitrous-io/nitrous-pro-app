@@ -147,6 +147,15 @@ App.Updater = Em.Object.extend
           'user-agent': window.navigator.userAgent
           accept: '*/*'
 
+      success = false
+
+      writeStream.on 'finish', =>
+        return unless success
+        fs.rename tempDownloadPath, @downloadPath, =>
+          @_log 'Download Finished'
+          @set 'downloading', false
+          @installUpdate()
+
       request = https.request options, (res) =>
         contentLength = window.parseInt res.headers['content-length'], 10
         @_log "#{res.statusCode}, Length: #{contentLength} bytes"
@@ -164,11 +173,8 @@ App.Updater = Em.Object.extend
           @set 'downloadedBytes', @get('downloadedBytes') + chunk.length
 
         res.on 'end', =>
+          success = true
           writeStream.end()
-          fs.rename tempDownloadPath, @downloadPath, =>
-            @_log 'Download Finished'
-            @set 'downloading', false
-            @installUpdate()
 
       request.on 'error', (err) =>
         request.abort()
