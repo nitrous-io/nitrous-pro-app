@@ -130,6 +130,10 @@ klass = App.SSHPortForwarder = Em.Object.extend
         window.alert("Port range is too high, please specify smaller ranges.")
         @set 'enabled', false
 
+      if m = ln.match(/Too\s+many\s+local\s+forwards\s+\(max\s+(\d+)\)/)
+        window.alert("You can only forward up to #{m[1]} ports on your OS.")
+        @set 'enabled', false
+
       forwarding = ln.match(/Local\s+forwarding\s+listening\s+on\s+127.0.0.1\s+port\s+(\d+)/)
       if forwarding
         @lastPortForwarded = forwarding[1]
