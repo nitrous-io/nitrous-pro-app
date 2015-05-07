@@ -15,7 +15,7 @@ klass = class App.SSH
     @onData = options.onData ? null
     @onQuit = options.onQuit ? null
     @onRestarting = options.onRestart ? null
-    if options.restartOnExit == null
+    if options.restartOnExit == null || options.restartOnExit == undefined
       @restartOnExit = true
     else
       @restartOnExit = options.restartOnExit
@@ -79,7 +79,6 @@ klass = class App.SSH
     if formattedData.match(/^debug1:/)
       if formattedData.indexOf('Authentication succeeded') != -1
         @shouldRetryAfterUploadingPublicKey = false
-      return # we won't pass through SSH debugging info to the receiver
 
     @onData?(formattedData)
 

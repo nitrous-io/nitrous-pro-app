@@ -168,9 +168,11 @@ App.on 'log-out', ->
   window.localStorage.removeItem 'access-token'
   App.get('sshKey')?.deleteKeys()
   App.Watcher.stopAll()
+  App.SSHPortForwarder.stopAll()
   ipc.send 'logged-out'
   App.unloadEventsSocket()
 
 window.onbeforeunload = ->
   App.Watcher.stopAll()
+  App.SSHPortForwarder.stopAll()
   return true

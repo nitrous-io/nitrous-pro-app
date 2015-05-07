@@ -3,5 +3,7 @@ App.MainWindowRoute = Em.Route.extend
     @_super.apply this, arguments
     App.loadEventsSocket()
 
+    controller.bind()
+
     App.fetchHosts()
     App.fetchContainers()

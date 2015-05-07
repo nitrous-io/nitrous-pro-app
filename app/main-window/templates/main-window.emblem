@@ -26,26 +26,58 @@ if App.hosts
                 .content
                   with App.selectedContainer
                     if configLoaded
-                      if fileSyncSupported
-                        label File Sync
-                        = ui-switch enabled=fileSync.enabled
-                        button click='showSyncFolder fileSync' Open Folder
-                      else
-                        label File Sync Not Available
-                      if sshAccessSupported
-                        button click='openSSHShell App.selectedContainer' Shell
-                      if previewUrl
-                        button click='openPreview App.selectedContainer' Preview
-                .content
-                  label Port Forwarding
-                  = ui-switch enabled=true
-                  ul
-                    li
-                      | 3306
-                    li
-                      | 8080
-                    li
-                      | 139
+                      table width='100%'
+                        if fileSyncSupported
+                          tr
+                            td
+                              label File Sync
+                            td width="70%"
+                              = ui-switch enabled=fileSync.enabled
+                          tr.spacer
+                        if sshAccessSupported
+                          tr
+                            td
+                              label Port Forwarding
+                            td
+                              = ui-switch enabled=portForwarder.enabled
+                          tr.spacer
+                          tr
+                            td
+                            td
+                              ul.port-list
+                                each pair in controller.portPairs
+                                  li click='selectPort pair' class={pair.selected:selected}
+                                    if pair.display
+                                      = pair.display
+                                    else
+                                      = pair.local
+                                      | :
+                                      = pair.remote
+                                if controller.showPlaceholder
+                                  li.input.no-selected click='showAddPort'
+                                    form
+                                      = input disabled='true' placeholder='Enter port or range. Eg: 3000, 1024-1027' type='text'
+                                if controller.showAddPortEntry
+                                  li.input
+                                    form submit='didAddPort'
+                                      = input placeholder='Enter port or range. Eg: 3000, 1024-1027' type='text' value=controller.addPort focus-out='addPortLostFocus'
+                                li.actions
+                                  a.active click='showAddPort'
+                                    .fa.fa-plus
+                                  a click='removeSelectedPort' class={controller.selectedPort:active}
+                                    .fa.fa-minus
+                          tr.spacer
+                        tr
+                          td
+                          td
+                            if fileSyncSupported
+                              button click='showSyncFolder fileSync' Open Folder
+                            else
+                              label File Sync Not Available
+                            if sshAccessSupported
+                              button click='openSSHShell App.selectedContainer' Shell
+                            if previewUrl
+                              button click='openPreview App.selectedContainer' Preview
 
 else
   .containing
