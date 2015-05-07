@@ -162,17 +162,17 @@ App.on 'app-did-load', ->
   App.Router.map ->
     @route 'main-window', path: '/'
 
-  App.loadEventsSocket()
-
 App.on 'log-out', ->
   App.get('fileSyncTracker').flush()
   App.set('fileSyncTracker.loaded', false)
   window.localStorage.removeItem 'access-token'
   App.get('sshKey')?.deleteKeys()
   App.Watcher.stopAll()
+  App.SSHPortForwarder.stopAll()
   ipc.send 'logged-out'
   App.unloadEventsSocket()
 
 window.onbeforeunload = ->
   App.Watcher.stopAll()
+  App.SSHPortForwarder.stopAll()
   return true

@@ -16,16 +16,22 @@ cd ..
 
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
+cp -r bin "$TEST_DIR/"
 mv rails/public/assets/* "$TEST_DIR"
 mv "$TEST_DIR/main.js" "$TEST_DIR/main-app.js"
 
 cd test/
 npm install
-cd ..
+cd mock-ssh/
+go build .
+cd ../..
 cp -r test/* "$TEST_DIR"
 
 mv "$TEST_DIR/main-window/main-window.js" "$TEST_DIR/main-window.js"
 mv "$TEST_DIR/login-window/login-window.js" "$TEST_DIR/login-window.js"
 
 cd "$TEST_DIR"
+
+killall mock-ssh || true
+
 ../../atom-shell/"$atom_shell_ver"/darwin-x64/Atom.app/Contents/MacOS/Atom ./
