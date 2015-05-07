@@ -16,7 +16,7 @@ else
 
 SHORTNAME_BIN_PATH = path.join(App.binPath, 'shortname.bat')
 
-IGNORE_LIST = 'Name {.bundler,.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
+IGNORE_LIST = 'Name {.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
 IGNORE_FOLDERS = 'Path {*/tmp/sessions,*/tmp/cache,*/tmp/pids,*/tmp/sockets}'
 
 App.Unison = klass = Em.Object.extend
@@ -106,9 +106,9 @@ App.Unison = klass = Em.Object.extend
         '-ignore', IGNORE_FOLDERS
         '-ignorecase', 'true' # case-insensitive
         '-prefer', remotePath
-        '-terse' # reduce output
         '-servercmd', '/nitrous/nitrous-unison'
         '-sshcmd', sshBin
+        '-silent'
       ]
 
       if syncOnly = @get 'syncOnly'
@@ -134,6 +134,11 @@ App.Unison = klass = Em.Object.extend
         cwd: App.homePath
         detached: false
         env: env
+        stdio: [
+          'pipe',
+          'pipe',
+          'ignore' # disable stderr
+        ]
 
       fs.exists unisonArchivesPath, (archiveExists) =>
         if !archiveExists || @get 'shouldIgnoreArchives'
@@ -152,9 +157,10 @@ App.Unison = klass = Em.Object.extend
           args.unshift UNISON_BIN_PATH
           childProcess.spawn '/bin/bash', args, options
 
+        @_log "Starting unison with #{args}"
         @set 'process', proc
         proc.stdout.on 'data', (data) => @handleProcessOutput(data)
-        proc.stderr.on 'data', (data) => @handleProcessOutput(data)
+        #proc.stderr.on 'data', (data) => @handleProcessOutput(data)
         proc.on 'exit', (code) => @processDidExit(code, cb)
 
     privateKeyPath = App.get 'sshKey.privateKeyPath'
@@ -205,6 +211,10 @@ App.Unison = klass = Em.Object.extend
     @_log "sync process exited with code #{code}"
     @set 'process', null
     @set 'syncing', false
+
+    if code == 2
+      return @set 'shouldAbort', false if @get 'shouldAbort'
+      @sync(cb)
 
     if @get 'shouldRetryAfterUploadingPublicKey'
       @set 'shouldRetryAfterUploadingPublicKey', false

@@ -124,7 +124,17 @@ klass = class App.Watcher extends EventEmitter
   _log: (firstMessage, others...) ->
     messages = ["[watcher] #{firstMessage}"]
     messages.concat others
-    logger.log messages
+
+    cleansed = []
+    messages.forEach (ln)=>
+      ln.split(/\r?\n/).forEach (nl)=>
+        if cleansed[cleansed.length-1] != nl
+          cleansed.push nl
+
+    if @_arrayEqual(@lastLog, cleansed)
+      return
+    @lastLog = cleansed # prevent constant hits to the same file spewing onto logs
+    logger.log cleansed
 
   _getWindowsShortNames: (path)->
     unless path.match(/\s/)
@@ -132,6 +142,10 @@ klass = class App.Watcher extends EventEmitter
     cmd = "cmd /c for %A in (\"#{path}\") do @echo %~sA"
     data = childProcess.execSync(cmd)
     data.toString("utf-8").trim()
+
+  _arrayEqual: (a, b) ->
+    return false unless a && b
+    a.length is b.length and a.every (elem, i) -> elem is b[i]
 
 klass.stopAll = ->
   knownWatchers = startedWatchers.slice 0
