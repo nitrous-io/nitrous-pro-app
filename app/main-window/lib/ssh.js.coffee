@@ -27,7 +27,7 @@ klass = class App.SSH
 
     privateKeyPath = App.get 'sshKey.privateKeyPath'
     if App.platform.isWindows
-      privateKeyPath = @_getWindowsShortNames(privateKeyPath)
+      privateKeyPath = App.windowsUtils.getWindowsShortName(privateKeyPath)
 
     [host, port] = @container.get('sshUrl').slice(6).split(':')
 
@@ -122,13 +122,6 @@ klass = class App.SSH
     sshKey = App.get('sshKey')
     sshKey.upload container, (err) =>
       cb?(err)
-
-  _getWindowsShortNames: (path)->
-    unless path.match(/\s/)
-      return path
-    cmd = "cmd /c for %A in (\"#{path}\") do @echo %~sA"
-    data = childProcess.execSync(cmd)
-    data.toString("utf-8").trim()
 
   _log: (firstMessage, others...) ->
     messages = ["[ssh] #{firstMessage}"]

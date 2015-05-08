@@ -136,13 +136,6 @@ klass = class App.Watcher extends EventEmitter
     @lastLog = cleansed # prevent constant hits to the same file spewing onto logs
     logger.log cleansed
 
-  _getWindowsShortNames: (path)->
-    unless path.match(/\s/)
-      return path
-    cmd = "cmd /c for %A in (\"#{path}\") do @echo %~sA"
-    data = childProcess.execSync(cmd)
-    data.toString("utf-8").trim()
-
   _arrayEqual: (a, b) ->
     return false unless a && b
     a.length is b.length and a.every (elem, i) -> elem is b[i]
