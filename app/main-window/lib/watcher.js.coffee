@@ -95,7 +95,7 @@ klass = class App.Watcher extends EventEmitter
       if fileName = match[1]
         filePath = path.join(@path, fileName)
         @_notify(filePath)
-    else if data.indexOf('inotify_add_watch') != -1
+    else if data.indexOf('inotify_add_watch') != -1 && data.indexOf('no space left on device') != -1
       window.alert 'Box has exceeded watch amount, please contact support.'
     else if @badState
       if data.indexOf('Ready to watch') != -1
@@ -123,7 +123,7 @@ klass = class App.Watcher extends EventEmitter
 
   _log: (firstMessage, others...) ->
     messages = ["[watcher] #{firstMessage}"]
-    messages.concat others
+    messages = messages.concat others
 
     cleansed = []
     messages.forEach (ln)=>

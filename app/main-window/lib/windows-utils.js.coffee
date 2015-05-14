@@ -11,7 +11,7 @@ App.windowsUtils =
     args = args.concat split
     res = childProcess.spawnSync("cmd", args)
     unless res && res.stdout && (out = res.stdout.toString())
-      window.alert("Unable to resolve Windows path. Please contact support")
+      window.alert("Unable to resolve Windows path. Please contact support. Path tried: #{path} Args used: #{args}")
       if res.stderr && (es = res.stderr.toString()) && es.length > 0
         @_log es
       return null

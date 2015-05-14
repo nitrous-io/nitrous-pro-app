@@ -111,8 +111,11 @@ App.Unison = klass = Em.Object.extend
         '-prefer', remotePath
         '-servercmd', '/nitrous/nitrous-unison'
         '-sshcmd', sshBin
-        '-silent'
       ]
+
+      # we need additional information for Windows issues
+      unless App.platform.isWindows
+        args.push '-silent'
 
       if syncOnly = @get 'syncOnly'
         args.push '-ignore', 'Name ?*', '-ignorenot', syncOnly
@@ -137,11 +140,6 @@ App.Unison = klass = Em.Object.extend
         cwd: App.homePath
         detached: false
         env: env
-        stdio: [
-          'pipe',
-          'pipe',
-          'ignore' # disable stderr
-        ]
 
       fs.exists unisonArchivesPath, (archiveExists) =>
         if !archiveExists || @get 'shouldIgnoreArchives'
@@ -163,7 +161,7 @@ App.Unison = klass = Em.Object.extend
         @_log "Starting unison with #{args}"
         @set 'process', proc
         proc.stdout.on 'data', (data) => @handleProcessOutput(data)
-        #proc.stderr.on 'data', (data) => @handleProcessOutput(data)
+        proc.stderr.on 'data', (data) => @handleProcessOutput(data)
         proc.on 'exit', (code) => @processDidExit(code, cb)
 
     privateKeyPath = App.get 'sshKey.privateKeyPath'

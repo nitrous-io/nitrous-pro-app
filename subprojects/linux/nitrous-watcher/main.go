@@ -26,7 +26,9 @@ func recursivelyWatchDirectories(watcher *inotify.Watcher, path string) {
 			err = watcher.AddWatch(path, inotify.IN_MODIFY|inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_DELETE_SELF|inotify.IN_CLOSE_WRITE)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
+				if strings.Contains(err.Error(), "no space left on device") {
+					os.Exit(1)
+				}
 			}
 		}
 		return nil
