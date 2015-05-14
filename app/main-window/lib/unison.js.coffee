@@ -14,9 +14,9 @@ SSH_BIN_PATH = if App.platform.isWindows
 else
   path.join(App.binPath, 'nitrous-ssh')
 
-SHORTNAME_BIN_PATH = path.join(App.binPath, 'shortname.bat')
+SHORTNAME_BIN_PATH = path.join(App.binPath, 'ShortNameHelper.exe')
 
-IGNORE_LIST = 'Name {.bundler,.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
+IGNORE_LIST = 'Name {.unison,.git,.svn,.hg,CVS,.DS_Store,.AppleDouble,.LSOverride,.Spotlight-V100,.Trashes,*.sock,*.pid,*.sw?,._*,*~}'
 IGNORE_FOLDERS = 'Path {*/tmp/sessions,*/tmp/cache,*/tmp/pids,*/tmp/sockets}'
 
 App.Unison = klass = Em.Object.extend
@@ -88,7 +88,10 @@ App.Unison = klass = Em.Object.extend
       sshBin = SSH_BIN_PATH
       if App.platform.isWindows
         @_log "Converting path #{sshBin}"
-        sshBin = @_getWindowsShortNames(sshBin)
+        sshBin = App.windowsUtils.getWindowsShortName(sshBin)
+        unless sshBin
+          @set 'syncing', false
+          return
         @_log "to short path #{sshBin}"
 
       args = [
@@ -106,10 +109,13 @@ App.Unison = klass = Em.Object.extend
         '-ignore', IGNORE_FOLDERS
         '-ignorecase', 'true' # case-insensitive
         '-prefer', remotePath
-        '-terse' # reduce output
         '-servercmd', '/nitrous/nitrous-unison'
         '-sshcmd', sshBin
       ]
+
+      # we need additional information for Windows issues
+      unless App.platform.isWindows
+        args.push '-silent'
 
       if syncOnly = @get 'syncOnly'
         args.push '-ignore', 'Name ?*', '-ignorenot', syncOnly
@@ -152,6 +158,7 @@ App.Unison = klass = Em.Object.extend
           args.unshift UNISON_BIN_PATH
           childProcess.spawn '/bin/bash', args, options
 
+        @_log "Starting unison with #{args}"
         @set 'process', proc
         proc.stdout.on 'data', (data) => @handleProcessOutput(data)
         proc.stderr.on 'data', (data) => @handleProcessOutput(data)
@@ -159,7 +166,7 @@ App.Unison = klass = Em.Object.extend
 
     privateKeyPath = App.get 'sshKey.privateKeyPath'
     if App.platform.isWindows
-      privateKeyPath = @_getWindowsShortNames(privateKeyPath)
+      privateKeyPath = App.windowsUtils.getWindowsShortName(privateKeyPath)
 
     ipc.send('syncing-start')
     invokeUnison(privateKeyPath.replace(/\ /g, '\\ '))
@@ -205,6 +212,10 @@ App.Unison = klass = Em.Object.extend
     @_log "sync process exited with code #{code}"
     @set 'process', null
     @set 'syncing', false
+
+    if code == 2
+      return @set 'shouldAbort', false if @get 'shouldAbort'
+      @sync(cb)
 
     if @get 'shouldRetryAfterUploadingPublicKey'
       @set 'shouldRetryAfterUploadingPublicKey', false
@@ -291,18 +302,11 @@ App.Unison = klass = Em.Object.extend
 
   _log: (firstMessage, others...) ->
     messages = ["[unison] #{@get('container.slug')}: #{firstMessage}"]
-    messages.concat others
+    messages = messages.concat others
     logger.log messages
 
   _sanitizeForRegex: (str)->
     str.replace(/\./g, "\\.")
-
-  _getWindowsShortNames: (path)->
-    unless path.match(/\s/)
-      return path
-    cmd = "cmd /c for %A in (\"#{path}\") do @echo %~sA"
-    data = childProcess.execSync(cmd)
-    data.toString("utf-8").trim()
 
 klass.reopenClass
   killAll: (cb) ->

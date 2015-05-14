@@ -22,6 +22,11 @@ for target in ./dist/*; do
     distType="windows"
   fi
 
+  distPadding=""
+  if [[ "$NITROUS_BETA" ]]; then
+    distPadding="-beta"
+  fi
+
   if [[ $distType != "" ]]; then
     cd $target
     foundFile=""
@@ -31,16 +36,17 @@ for target in ./dist/*; do
       fi
     done
     if [[ $foundFile =~ -(.+)\.zip ]]; then
+      distPath="$distType$distPadding"
       thisVersion="${BASH_REMATCH[1]}"
-      jsonUrl="$S3_URL/$distType/app.json"
+      jsonUrl="$S3_URL/$distPath/app.json"
       jsonContents=`curl $jsonUrl 2>/dev/null`
       expected="\"version\": \"$thisVersion\""
-      finalUrl="$S3_URL/$distType/$foundFile"
-      cdnUrl="$CFRONT_URL/$distType/$foundFile"
+      finalUrl="$S3_URL/$distPath/$foundFile"
+      cdnUrl="$CFRONT_URL/$distPath/$foundFile"
       if ! [ "${jsonContents/$expected}" = "$jsonContents" ] ; then
-        echo "[$distType] Version $thisVersion already exists!"
+        echo "[$distPath] Version $thisVersion already exists!"
       else
-        echo "[$distType] Version $thisVersion does not exist, will upload."
+        echo "[$distPath] Version $thisVersion does not exist, will upload."
         fileSize=""
         if [[ $thisOS == "Darwin" ]]; then
           fileSize=$(stat -f%z "$foundFile")
@@ -48,22 +54,22 @@ for target in ./dist/*; do
           fileSize=$(stat -c%s "$foundFile")
         fi
         appJson="{ \"version\": \"$thisVersion\", \"url\": \"$finalUrl\", \"fileSize\": $fileSize }"
-        $s3cmdBase put -P $foundFile s3://$BUCKET_NAME/$distType/$foundFile
+        $s3cmdBase put -P $foundFile s3://$BUCKET_NAME/$distPath/$foundFile
         tmpLoc="/tmp/$foundFile.json"
         echo $appJson > $tmpLoc
-        $s3cmdBase put -m "application/json" -P $tmpLoc s3://$BUCKET_NAME/$distType/app.json
+        $s3cmdBase put -m "application/json" -P $tmpLoc s3://$BUCKET_NAME/$distPath/app.json
         rm -rf $tmpLoc
       fi
 
-      downloadUrl="$S3_URL/$distType/download.html"
+      downloadUrl="$S3_URL/$distPath/download.html"
       downloadContents=`curl $downloadUrl 2>/dev/null`
       if ! [ "${downloadContents/$cdnUrl}" = "$downloadContents" ] ; then
-        echo "[$distType] download.html for Version $thisVersion already exists!"
+        echo "[$distPath] download.html for Version $thisVersion already exists!"
       else
         downloadSource="<html><head><meta http-equiv=\"refresh\" content=\"0; url=$cdnUrl\"></head><body></body></html>"
         tmpDownload="/tmp/$foundFile.html"
         echo $downloadSource > $tmpDownload
-        $s3cmdBase put $tmpDownload s3://$BUCKET_NAME/$distType/download.html -P --cf-invalidate --add-header="Cache-Control:max-age=600" --add-header="x-amz-website-redirect-location:$cdnUrl"
+        $s3cmdBase put $tmpDownload s3://$BUCKET_NAME/$distPath/download.html -P --cf-invalidate --add-header="Cache-Control:max-age=600" --add-header="x-amz-website-redirect-location:$cdnUrl"
         rm -rf $tmpDownload
       fi
     else

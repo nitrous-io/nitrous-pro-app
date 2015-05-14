@@ -3,8 +3,11 @@ path = require 'path'
 shell = require 'shell'
 ipc = require 'ipc'
 logger = require './lib/logger'
+os = require 'os'
 
 NITROUS_FOLDER_PATH = path.join(App.homePath, 'Nitrous')
+
+DEFAULT_SYNC_IGNORE = "# Specify files or patterns to exclude from syncing#{os.EOL}*.log#{os.EOL}.bundle#{os.EOL}"
 
 App.FileSync = klass = Em.Object.extend
   container: null
@@ -139,7 +142,9 @@ App.FileSync = klass = Em.Object.extend
         contents = fs.readFileSync(syncFile, 'utf8')
         unison.parseIgnoreContents contents
     else
-      unison.parseIgnoreContents ""
+      # write out a default syncignore
+      fs.writeFileSync(syncFile, DEFAULT_SYNC_IGNORE)
+      unison.parseIgnoreContents DEFAULT_SYNC_IGNORE
 
   _initializeWatcher: (cb) ->
     syncPath = @get 'syncPath'
@@ -161,7 +166,7 @@ App.FileSync = klass = Em.Object.extend
       @performSync()
     watcher.on 'watcherRestarting', (watcher) => @_watcherRestarting(watcher)
     watcher.on 'watcherRestored', (watcher) => @_watcherRestored(watcher)
-    @set 'remoteWatcher', remoteWatcher = new App.Watcher(@container.get('syncPath'), ssh: sshUrl)
+    @set 'remoteWatcher', remoteWatcher = new App.Watcher(@container.get('syncPath'), container: @container)
     remoteWatcher.on 'change', (change) =>
       @_log "detected remote fs change at #{change}"
       @performSync =>

@@ -18,7 +18,9 @@ module.exports =
       console.log data
 
     if @logFile
-      @logFile.write messages.join(" ")
+      d = (new Date()).toString()
+      msg = messages.join(" ")
+      @logFile.write "#{d}: #{msg}\r\n"
 
     if App.platform.isMac
       message = messages.join(" ").replace(/"/gi, "\\\"")

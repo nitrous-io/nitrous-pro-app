@@ -21,6 +21,13 @@ App.Container = klass = Em.Object.extend
     @_super.apply this, arguments
     @set 'fileSync', App.FileSync.create(container: this)
 
+  restorePortForwarder: (->
+    return unless @get('id') && @get('sshUrl')
+    return if @get 'portForwarder'
+    @set 'portForwarder', p = App.SSHPortForwarder.create(container: this)
+    p.loadSettings()
+  ).observes 'id', 'sshUrl'
+
   displayName: (->
     @get('name') || @get('slug')
   ).property 'name', 'slug'
