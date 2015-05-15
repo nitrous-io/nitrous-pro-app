@@ -118,8 +118,8 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
         newCon
         @_log "Adding new container [#{newCon.get('id')}]"
         existingContainers.addObject newCon
-    , () ->
-      removeable.forEach (c)->
+    , () =>
+      removeable.forEach (c)=>
         @_log "Removing [#{c.id}]"
         c.set('fileSync.enabled', false)
       existingContainers.removeObjects removeable
