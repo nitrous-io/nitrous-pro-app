@@ -196,6 +196,13 @@ App.Unison = klass = Em.Object.extend
       else if patErr = data.match(/Malformed\s*pattern:\s*(.+)/)?[1]?.toLowerCase()
         patErr = patErr.replace(/(^"|"$)/g, "")
         @set 'malformedPattern', patErr
+      else if errorMessage.indexOf('They cannot be synchronized to a case-insensitive file system.') != -1
+        match = data.match(/\(File\s+'([^']+)'/)
+        if match
+          window.alert("Two or more files have identical names except for case. Please correct #{match[1]}")
+        else
+          window.alert("Two or more files have identical names except for case.")
+        @set 'shouldRetryWithDelay', 5000
       else
         @set 'lastErrorMessage', errorMessage
         @set 'shouldRetryWithDelay', 5000
@@ -204,7 +211,7 @@ App.Unison = klass = Em.Object.extend
     if data.indexOf('Permission denied (') != -1
       @_log 'ssh permission denied'
       @set 'shouldRetryAfterUploadingPublicKey', true
-    else if transferCount = data.match(/Synchronization complete at .+ \(([\d,]+) items? transferred/)?[1]
+    if transferCount = data.match(/Synchronization complete at .+ \(([\d,]+) items? transferred/)?[1]
       @set 'transferCount', window.parseInt(transferCount.replace(/,/g, ''), 10)
 
   processDidExit: (code, cb) ->
