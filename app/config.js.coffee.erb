@@ -12,7 +12,13 @@
     upgrade_url = host + '/'
   end
 
+  beta = false
+  if ENV['NITROUS_BETA']
+    beta = true
+  end
+
   puts "App VERSION: #{File.read(File.join(File.dirname(__FILE__), "..", "VERSION"))}"
+  puts "Beta: #{beta}"
 %>
 
 path = require 'path'
@@ -42,4 +48,5 @@ module.exports =
   resPath: resPath
   appPath: appPath
   updateLocation: "https://nitrous-pro-app.s3.amazonaws.com"
+  beta: <%= "#{beta}" %>
   version: "<%= File.read(File.join(File.dirname(__FILE__), "..", "VERSION")) %>"

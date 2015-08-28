@@ -70,6 +70,9 @@ App.Updater = Em.Object.extend
     else
       null
 
+    if config.beta
+      platformDir = "#{platformDir}-beta"
+
     unless platformDir && config.updateLocation && config.version
       @set 'checking', false
       return
