@@ -5,12 +5,6 @@ shell = require 'shell'
 remote = require 'remote'
 dialog = remote.require 'dialog'
 
-allowedBillingStates = [
-  'payment_due',
-  'paid',
-  'exempt'
-]
-
 App.LoginWindowController = Em.Controller.extend
   loggingIn: false
   username: null
@@ -28,8 +22,7 @@ App.LoginWindowController = Em.Controller.extend
       type: 'GET'
       url: '/api/v0/user'
     ).then (res) =>
-      paid = allowedBillingStates.indexOf(res.user.billing_profile.state) != -1
-      if !paid
+      if !res.user.can_use_desktop_app
         @set 'loggingIn', false
         dialog.showMessageBox remote.getCurrentWindow(),
           type: "warning",
