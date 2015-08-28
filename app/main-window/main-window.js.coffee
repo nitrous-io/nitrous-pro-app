@@ -47,6 +47,7 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
 
   hosts: null
   containers: null
+  sharedContainers: null
   selectedContainerId: null
 
   online: navigator.onLine
@@ -65,8 +66,10 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
   fileSyncTracker: null
 
   selectedContainer: (->
-    App.get('containers').findBy 'id', @get('selectedContainerId')
-  ).property 'selectedContainerId', 'containers.@each'
+    App.get('allContainers').findBy 'id', @get('selectedContainerId')
+  ).property 'selectedContainerId', 'allContainers.@each'
+
+  allContainers: Ember.computed.union 'containers', 'sharedContainers'
 
   quit: ->
     mainApp.quit()
@@ -96,14 +99,20 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
     @set 'hosts', App.Host.fetch()
 
   fetchContainers: ->
-    if @get('containers') == null
-      return @set 'containers', App.Container.fetch()
+    @_fetchContainersOfType 'containers', App.Container
 
-    @_log "Containers refreshing"
+  fetchSharedContainers: ->
+    @_fetchContainersOfType 'sharedContainers', App.SharedContainer
+
+  _fetchContainersOfType: (key, model)->
+    if @get(key) == null
+      return @set key, model.fetch()
+
+    @_log "#{key} refreshing"
     @refreshingContainers = true
-    existingContainers = @get 'containers'
+    existingContainers = @get key
     removeable = existingContainers.content.copy()
-    App.Container.fetchEachRaw (cJson) =>
+    model.fetchEachRaw (cJson) =>
       removeable = removeable.rejectBy 'id', cJson.id
       existingContainer = existingContainers.findBy('id', cJson.id)
       if existingContainer
@@ -112,7 +121,7 @@ window.MainWindow = klass = Em.Application.extend Em.Evented,
         existingContainer.applyFromJsonObject cJson
         existingContainer.refreshConfig()
       else
-        newCon = App.Container.create()
+        newCon = model.create()
         newCon.applyFromJsonObject cJson
         newCon.get 'config'
         newCon

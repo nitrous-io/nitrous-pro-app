@@ -105,7 +105,7 @@ klass = class App.Watcher extends EventEmitter
   _processDidQuit: (code) ->
     return if @expectingStop
 
-    @_log 'Unexpected quit, restarting'
+    @_log "Unexpected quit, restarting. Code: #{code}"
     @_handleWatcherRestarting()
     @quitRestarter = window.setTimeout(=>
       @quitRestarter = null

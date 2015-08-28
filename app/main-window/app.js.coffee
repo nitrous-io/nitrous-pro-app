@@ -1,5 +1,7 @@
 #= require_tree ./lib
-#= require_tree ./models
+#= require ./models/host
+#= require ./models/container
+#= require ./models/shared-container
 #= require_tree ./controllers
 #= require_tree ./views
 #= require_tree ./components
