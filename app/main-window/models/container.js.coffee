@@ -17,6 +17,8 @@ App.Container = klass = Em.Object.extend
 
   fileSync: null
 
+  shared: false
+
   init: ->
     @_super.apply this, arguments
     @set 'fileSync', App.FileSync.create(container: this)

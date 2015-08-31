@@ -5,6 +5,8 @@ App.SharedContainer = klass = App.Container.extend
 
   canEdit: false
 
+  shared: true
+
   loadConfig: ->
     @ajax('GET', 'config').then (json) =>
       @setConfig(json.config)
