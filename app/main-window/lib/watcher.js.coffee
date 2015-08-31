@@ -24,7 +24,7 @@ klass = class App.Watcher extends EventEmitter
     @delay = options.delay ? 100
     @ssh = if options.container
       new App.SSH(options.container,
-        cmd: "killall nitrous-watcher; /nitrous/nitrous-watcher /home/nitrous/code"
+        cmd: "/nitrous/nitrous-watcher /home/nitrous/code"
         onData: (data)=>
           @_processOutput(data)
         onRestarting: ()=>
@@ -57,6 +57,7 @@ klass = class App.Watcher extends EventEmitter
     @expectingStop = false
 
     if @ssh
+      @killedAll = false
       @ssh.start()
     else
       @proc = childProcess.spawn WATCHER_BIN_PATH, [@path], detached: false
@@ -96,7 +97,16 @@ klass = class App.Watcher extends EventEmitter
         filePath = path.join(@path, fileName)
         @_notify(filePath)
     else if data.indexOf('inotify_add_watch') != -1 && data.indexOf('no space left on device') != -1
-      window.alert 'Box has exceeded watch amount, please contact support.'
+      if @killedAll
+        window.alert 'Box has exceeded watch amount, please contact support.'
+        return
+
+      # clean up all old nitrous watchers
+      @killedAll = true
+      kill = new App.SSH(options.container,
+        cmd: "killall nitrous-watcher"
+      )
+      kill.start
     else if @badState
       if data.indexOf('Ready to watch') != -1
         @badState = false
