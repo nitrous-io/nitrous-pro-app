@@ -44,17 +44,17 @@ App.FileSyncTracker = Em.Object.extend
 
   restoreFileSync: (->
     return unless @get 'loaded'
-    return if @get('fileSyncRestored') || App.get('containers') == null || App.get('containers') == undefined || App.get('containers.length') == 0
+    return if @get('fileSyncRestored') || App.get('allContainers') == null || App.get('allContainers') == undefined || App.get('allContainers.length') == 0
 
     previousFileSyncs = @get 'enabledContainers'
-    App.get('containers').forEach (container) =>
+    App.get('allContainers').forEach (container) =>
       if previousFileSyncs.contains container.id
         if config.debug
           @_log "#{container.id} Restoring file-sync"
         container.get('fileSync').set('enableWhenReady', true)
 
     @set 'fileSyncRestored', true
-  ).observes 'App.containers.@each', 'enabledContainers.@each', 'loaded'
+  ).observes 'App.allContainers.@each', 'enabledContainers.@each', 'loaded'
 
   _log: (firstMessage, others...) ->
     messages = ["[file-sync-tracker] #{firstMessage}"]

@@ -7,3 +7,4 @@ App.MainWindowRoute = Em.Route.extend
 
     App.fetchHosts()
     App.fetchContainers()
+    App.fetchSharedContainers()

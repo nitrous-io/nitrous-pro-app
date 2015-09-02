@@ -29,17 +29,20 @@ klass.reopenClass
     ).then (res) ->
       if Em.isArray(res.hosts)
         hosts.set 'content', res.hosts.map (h) ->
-          App.Host.create
-            id: h.id
-            name: h.name
-            slug: h.slug
-            state: h.state
-            hostname: h.hostname
-            freighterdPort: h.freighterd_port
-            proxyHostname: h.proxy_hostname
-            ipAddress: h.ip_address
+          App.Host.fromJSON(h)
       cb?(hosts)
     , (jqxhr) ->
       json = jqxhr.responseJSON
       window.alert(json?.error_description || json?.error || "Failed to load hosts (#{jqxhr.statusText})")
     hosts
+
+  fromJSON: (h)->
+    App.Host.create
+      id: h.id
+      name: h.name
+      slug: h.slug
+      state: h.state
+      hostname: h.hostname
+      freighterdPort: h.freighterd_port
+      proxyHostname: h.proxy_hostname
+      ipAddress: h.ip_address

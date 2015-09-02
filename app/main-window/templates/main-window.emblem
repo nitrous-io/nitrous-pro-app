@@ -18,69 +18,20 @@ if App.hosts
           = host.displayName
         ul.container-list
           each container in host.containers
-            li class={container.selected:selected}
-              h4.container-name click='selectContainer container'
-                .state-orb class={container.state}
-                = container.displayName
-              .container-details
-                .content
-                  with App.selectedContainer
-                    if configLoaded
-                      table width='100%'
-                        if fileSyncSupported
-                          tr
-                            td
-                              label File Sync
-                            td width="70%"
-                              = ui-switch enabled=fileSync.enabled
-                          tr.spacer
-                        if sshAccessSupported
-                          tr
-                            td
-                              label Port Forwarding
-                            td
-                              = ui-switch enabled=portForwarder.enabled
-                          tr.spacer
-                          tr
-                            td
-                            td
-                              ul.port-list
-                                each pair in controller.portPairs
-                                  li click='selectPort pair' class={pair.selected:selected}
-                                    if pair.display
-                                      = pair.display
-                                    else
-                                      = pair.local
-                                      | :
-                                      = pair.remote
-                                if controller.showPlaceholder
-                                  li.input.no-selected click='showAddPort'
-                                    form
-                                      = input disabled='true' placeholder='Enter port or range. Eg: 3000, 1024-1027' type='text'
-                                if controller.showAddPortEntry
-                                  li.input
-                                    form submit='didAddPort'
-                                      = input placeholder='Enter port or range. Eg: 3000, 1024-1027' type='text' value=controller.addPort focus-out='addPortLostFocus'
-                                li.actions
-                                  a.active click='showAddPort'
-                                    .fa.fa-plus
-                                  a click='removeSelectedPort' class={controller.selectedPort:active}
-                                    .fa.fa-minus
-                          tr.spacer
-                        tr
-                          td
-                          td
-                            if fileSyncSupported
-                              button click='showSyncFolder fileSync' Open Folder
-                            else
-                              label File Sync Not Available
-                            if sshAccessSupported
-                              button click='openSSHShell App.selectedContainer' Shell
-                            if previewUrl
-                              button click='openPreview App.selectedContainer' Preview
+            = view 'container-control' content=container
 
-else
-  .containing
-    .notice
-      p You don't have any workspaces
-      button click='createHost' Create a new workspace
+unless App.hosts
+  unless App.sharedContainers
+    .containing
+      .notice
+        p You don't have any workspaces
+        button click='createHost' Create a new workspace
+
+if App.sharedContainers
+  ul.host-list
+    li
+      h3.host-name
+        | Shared Containers
+      ul.container-list
+        each container in App.sharedContainers
+          = view 'container-control' content=container
