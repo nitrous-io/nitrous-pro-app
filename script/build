@@ -51,6 +51,8 @@ if [ $build_env == "production" ]; then
   cp -a bin/osx "$resources_path"/bin
   cp -a images "$resources_path/images"
 
+  find . -name '*.DS_Store' -type f -delete
+
   # code sign
   sig='4A935863DFF7D879E4487FC3FE1AF30EA03FAF00'
   codesign -f -v -s "$sig" "$resources_path"/app.asar
