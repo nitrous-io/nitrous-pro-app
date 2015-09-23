@@ -1,13 +1,13 @@
 <%
   case ENV['RACK_ENV']
   when 'production'
-    host = 'https://pro.nitrous.io'
+    host = 'https://www.nitrous.io'
     signup_url = host + '/'
     upgrade_url = host + '/'
   when 'test'
     host = 'http://localhost:8080'
   else
-    host = ENV["CUSTOM_ENDPOINT"] || 'https://pro.n2ostaging.com'
+    host = ENV["CUSTOM_ENDPOINT"] || 'https://www.n2ostaging.com'
     signup_url = host + '/'
     upgrade_url = host + '/'
   end
